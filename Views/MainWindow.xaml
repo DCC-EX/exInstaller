@@ -1,0 +1,32 @@
+﻿<Window x:Class="BaseStationInstaller.MainWindow" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:d="http://schemas.microsoft.com/expression/blend/2008" xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" xmlns:local="clr-namespace:BaseStationInstaller" mc:Ignorable="d" xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes" TextElement.Foreground="{DynamicResource MaterialDesignBody}" TextElement.FontWeight="Regular" TextElement.FontSize="13" TextOptions.TextFormattingMode="Ideal" TextOptions.TextRenderingMode="Auto" Background="{DynamicResource MaterialDesignPaper}" FontFamily="{DynamicResource MaterialDesignFont}" Title="BaseStationInstaller" Height="450" Width="800">
+    <Grid>
+        <materialDesign:Card Padding="32" Margin="16">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition></ColumnDefinition>
+                    <ColumnDefinition></ColumnDefinition>
+                    <ColumnDefinition></ColumnDefinition>
+                </Grid.ColumnDefinitions>
+                <Grid.RowDefinitions>
+                    <RowDefinition></RowDefinition>
+                    <RowDefinition></RowDefinition>
+                    <RowDefinition></RowDefinition>
+                </Grid.RowDefinitions>
+                <TextBlock Grid.Row="0" Style="{DynamicResource MaterialDesignBody1TextBlock}">Select Base Station Type</TextBlock>
+                <ComboBox Grid.Row="0" Style="{DynamicResource MaterialDesignComboBox}" ItemsSource="{Binding BaseStations}" SelectedValuePath="Key" SelectedItem="{Binding SelectedConfig}">
+                    <ComboBox.ItemTemplate>
+                        <DataTemplate>
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Text="{Binding Value.Name}" />
+                            </StackPanel>
+                        </DataTemplate>
+                    </ComboBox.ItemTemplate>
+                </ComboBox>
+                <TextBlock Grid.Row="1" Style="{DynamicResource MaterialDesignBody1TextBlock}" >Select Board Type</TextBlock>
+                <ComboBox Grid.Row="1" Style="{DynamicResource MaterialDesignComboBox}" ItemsSource="{Binding SelectedConfig.SupportedBoards}" SelectedItem="{Binding SelectedBoard}"></ComboBox>
+                <TextBlock Grid.Row="2" Style="{DynamicResource MaterialDesignBody1TextBlock}">Select Motor Shield</TextBlock>
+                <ComboBox Grid.Row="2" Style="{DynamicResource MaterialDesignComboBox}" ItemsSource="{Binding SelectedConfig.SupportedMotorShields}" SelectedItem="{Binding SelectedMotorShield}"></ComboBox>
+            </Grid>
+        </materialDesign:Card>
+    </Grid>
+</Window>
