@@ -14,7 +14,7 @@ namespace BaseStationInstaller.Models
             Name = name;
             Platform = platform;
         }
-        public string Name;
-        public string Platform;
+        public string Name { get; set; }
+        public string Platform { get; set; }
     }
 }

@@ -8,12 +8,12 @@ namespace BaseStationInstaller.Models
 {
     public struct Config
     {
-        public string Name;
-        public string Git;
-        public List<string> Dependencies;
-        public string BuildCommand;
-        public List<Board> SupportedBoards;
-        public List<MotorShield> SupportedMotorShields;
+        public string Name { get; set; }
+        public string Git { get; set; }
+        public List<string> Dependencies { get; set; }
+        public string BuildCommand { get; set; }
+        public List<Board> SupportedBoards { get; set; }
+        public List<MotorShield> SupportedMotorShields { get; set; }
     }
 
     public static class BaseStationSettings
@@ -33,8 +33,8 @@ namespace BaseStationInstaller.Models
                     BuildCommand = "platformio run",
                     SupportedBoards = new List<Board>()
                     {
-                        new Board("uno", "atmelavr"),
-                        new Board("mega", "atmelavr"),
+                        new Board("Uno", "atmelavr"),
+                        new Board("Mega", "atmelavr"),
                         new Board("ESP32", "espressif32"),
                     },
                     SupportedMotorShields = new List<MotorShield>()
