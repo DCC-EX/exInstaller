@@ -22,10 +22,10 @@ namespace BaseStationInstaller.Models
 
     public static class BaseStationSettings
     {
-        public static Dictionary<string, Config> BaseStationDefaults = new Dictionary<string, Config>()
+        public static List<Config> BaseStationDefaults = new List<Config>()
         {
             {
-                "BaseStation", new Config
+                new Config
                 {
                     Name = "Base Station",
                     Git = "https://github.com/DCC-EX/BaseStation.git",
@@ -47,11 +47,11 @@ namespace BaseStationInstaller.Models
                         new MotorShield("Pololu MC33926 Motor Shield"),
                         new MotorShield("BTS7960B Motor Shield"),
                     },
-                    WiringDiagram = "/dcc_ex_logo.png"
+                    WiringDiagram = "pack://application:,,,/Resources/dcc-ex-logo.png"
                 }
             },
             {
-                "BaseStationClassic", new Config
+                new Config
                 {
                     Name = "Base Station Classic",
                     Git = "https://github.com/DCC-EX/BaseStation-Classic.git",
@@ -70,7 +70,7 @@ namespace BaseStationInstaller.Models
                         new MotorShield("Arduino Motor Shield"),
                         new MotorShield("Pololu MC33926 Motor Shield"),
                     },
-                    WiringDiagram = "/dcc_ex_logo.png"
+                    WiringDiagram = "pack://application:,,,/Resources/dcc_ex_logo.png"
                 }
             }
         };

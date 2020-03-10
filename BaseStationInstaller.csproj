@@ -206,13 +206,10 @@
     <None Include="App.config" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="Resources\dcc-ex.png" />
-  </ItemGroup>
-  <ItemGroup>
     <Resource Include="dcc-ex-installer.ico" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="Resources\dcc-ex-logo.png" />
+    <EmbeddedResource Include="Resources\dcc-ex-logo.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">

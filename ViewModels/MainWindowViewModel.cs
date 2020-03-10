@@ -16,12 +16,12 @@ namespace BaseStationInstaller.ViewModels
     {
         public MainWindowViewModel()
         {
-            SelectedConfig = BaseStationSettings.BaseStationDefaults.ElementAt(0);
+            SelectedConfig = BaseStationSettings.BaseStationDefaults[0];
             RefreshComports();
         }
 
         #region Bindings
-        public IDictionary<string, Config> BaseStations
+        public IList<Config> BaseStations
         {
             get
             {
@@ -29,8 +29,8 @@ namespace BaseStationInstaller.ViewModels
             }
         }
 
-        private KeyValuePair<string, Config> _selectedConfig;
-        public KeyValuePair<string, Config> SelectedConfig
+        private Config _selectedConfig;
+        public Config SelectedConfig
         {
             get
             {
@@ -40,11 +40,11 @@ namespace BaseStationInstaller.ViewModels
             {
                 _selectedConfig = value;
                 RaisePropertyChanged("SelectedConfig");
-                SelectedSupportedBoards = new ObservableCollection<Board>(SelectedConfig.Value.SupportedBoards);
+                SelectedSupportedBoards = new ObservableCollection<Board>(SelectedConfig.SupportedBoards);
                 SelectedBoard = SelectedSupportedBoards[0];
-                SelectedSupportedMotorShields = new ObservableCollection<MotorShield>(SelectedConfig.Value.SupportedMotorShields);
+                SelectedSupportedMotorShields = new ObservableCollection<MotorShield>(SelectedConfig.SupportedMotorShields);
                 SelectedMotorShield = SelectedSupportedMotorShields[0];
-                WiringDiagram = SelectedConfig.Value.WiringDiagram;
+                WiringDiagram = SelectedConfig.WiringDiagram;
             }
         }
 
@@ -270,7 +270,10 @@ namespace BaseStationInstaller.ViewModels
                 CommandManager.InvalidateRequerySuggested();
             }
             AvailableComPorts = new ObservableCollection<string>(SerialPort.GetPortNames());
-            SelectedComPort = AvailableComPorts[0];
+            if (AvailableComPorts.Count >= 1)
+            {
+                SelectedComPort = AvailableComPorts[0];
+            }
             Progress = 100;
             Busy = false;
             RefreshingPorts = false;
@@ -287,6 +290,14 @@ namespace BaseStationInstaller.ViewModels
             Status = "SOON™";
         }
 
+
+        private void DownloadPreReqs()
+        {
+            foreach(string link in SelectedConfig.Dependencies)
+            {
+               
+            }
+        }
        
         #endregion
     }
