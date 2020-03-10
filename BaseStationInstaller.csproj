@@ -41,6 +41,9 @@
   <PropertyGroup>
     <StartupObject>BaseStationInstaller.App</StartupObject>
   </PropertyGroup>
+  <PropertyGroup>
+    <ApplicationIcon>dcc-ex-installer.ico</ApplicationIcon>
+  </PropertyGroup>
   <ItemGroup>
     <Reference Include="ArduinoUploader, Version=3.1.0.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>packages\ArduinoUploader.3.2.0\lib\net452\ArduinoUploader.dll</HintPath>
@@ -81,6 +84,7 @@
       <Private>True</Private>
       <Private>True</Private>
     </Reference>
+    <Reference Include="System.Drawing" />
     <Reference Include="System.IO, Version=4.1.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
       <HintPath>packages\System.IO.4.3.0\lib\net462\System.IO.dll</HintPath>
       <Private>True</Private>
@@ -165,6 +169,7 @@
     </Compile>
     <Compile Include="Models\Board.cs" />
     <Compile Include="Models\BaseStationSettings.cs" />
+    <Compile Include="Models\DelegateCommand.cs" />
     <Compile Include="Models\MotorShield.cs" />
     <Compile Include="ViewModels\MainWindowViewModel.cs" />
     <Compile Include="ViewModels\ViewModelBase.cs" />
@@ -200,7 +205,15 @@
   <ItemGroup>
     <None Include="App.config" />
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <None Include="Resources\dcc-ex.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="dcc-ex-installer.ico" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\dcc-ex-logo.png" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
     <PropertyGroup>
