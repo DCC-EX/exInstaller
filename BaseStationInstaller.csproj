@@ -209,7 +209,19 @@
     <Resource Include="dcc-ex-installer.ico" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="Resources\dcc-ex-logo.png" />
+    <Resource Include="Resources\dcc-ex-logo.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Resources\mega-arduino.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Resources\mega-pololu.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Resources\uno-arduino.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Resources\uno-pololu.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">

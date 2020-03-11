@@ -43,11 +43,10 @@ namespace BaseStationInstaller.Models
                     },
                     SupportedMotorShields = new List<MotorShield>()
                     {
-                        new MotorShield("Arduino Motor Shield"),
-                        new MotorShield("Pololu MC33926 Motor Shield"),
-                        new MotorShield("BTS7960B Motor Shield"),
-                    },
-                    WiringDiagram = "pack://application:,,,/Resources/dcc-ex-logo.png"
+                        new MotorShield("Arduino Motor Shield", MotorShieldType.Arduino),
+                        new MotorShield("Pololu MC33926 Motor Shield", MotorShieldType.Pololu),
+                        new MotorShield("BTS7960B Motor Shield", MotorShieldType.BTS7960B),
+                    }
                 }
             },
             {
@@ -67,12 +66,49 @@ namespace BaseStationInstaller.Models
                     },
                     SupportedMotorShields = new List<MotorShield>()
                     {
-                        new MotorShield("Arduino Motor Shield"),
-                        new MotorShield("Pololu MC33926 Motor Shield"),
+                        new MotorShield("Arduino Motor Shield", MotorShieldType.Arduino),
+                        new MotorShield("Pololu MC33926 Motor Shield", MotorShieldType.Pololu),
                     },
-                    WiringDiagram = "pack://application:,,,/Resources/dcc_ex_logo.png"
                 }
             }
         };
+
+
+        public static string GetWiringDiagram(ArduinoModel model, MotorShieldType type)
+        {
+            string wiringDiagram = "pack://application:,,,/Resources/dcc-ex-logo.png";
+            switch (model)
+            {
+                case ArduinoModel.Mega2560:
+                    switch (type)
+                    {
+                        case MotorShieldType.Arduino:
+                            wiringDiagram = "pack://application:,,,/Resources/mega-arduino.png";
+                            break;
+                        case MotorShieldType.Pololu:
+                            wiringDiagram = "pack://application:,,,/Resources/mega-pololu.png";
+                            break;
+                        case MotorShieldType.BTS7960B:
+                            wiringDiagram = "pack://application:,,,/Resources/dcc-ex-logo.png";
+                            break;
+                    }
+                    break;
+                case ArduinoModel.UnoR3:
+                    switch (type)
+                    {
+                        case MotorShieldType.Arduino:
+                            wiringDiagram = "pack://application:,,,/Resources/uno-arduino.png";
+                            break;
+                        case MotorShieldType.Pololu:
+                            wiringDiagram = "pack://application:,,,/Resources/uno-pololu.png";
+                            break;
+                        case MotorShieldType.BTS7960B:
+                            wiringDiagram = "pack://application:,,,/Resources/dcc-ex-logo.png";
+                            break;
+                    }
+                    break;
+            }
+            return wiringDiagram;
+        }
     }
 }

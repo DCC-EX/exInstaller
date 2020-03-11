@@ -16,8 +16,10 @@ namespace BaseStationInstaller.ViewModels
     {
         public MainWindowViewModel()
         {
+            
             SelectedConfig = BaseStationSettings.BaseStationDefaults[0];
-            RefreshComports();
+            Task task = new Task(RefreshComports);
+            task.Start();
         }
 
         #region Bindings
@@ -44,7 +46,7 @@ namespace BaseStationInstaller.ViewModels
                 SelectedBoard = SelectedSupportedBoards[0];
                 SelectedSupportedMotorShields = new ObservableCollection<MotorShield>(SelectedConfig.SupportedMotorShields);
                 SelectedMotorShield = SelectedSupportedMotorShields[0];
-                WiringDiagram = SelectedConfig.WiringDiagram;
+                
             }
         }
 
@@ -103,6 +105,10 @@ namespace BaseStationInstaller.ViewModels
             {
                 _selectedBoard = value;
                 RaisePropertyChanged("SelectedBoard");
+                if (SelectedMotorShield != null)
+                {
+                    WiringDiagram = BaseStationSettings.GetWiringDiagram(SelectedBoard.Platform, SelectedMotorShield.ShieldType);
+                }
             }
         }
 
@@ -118,6 +124,10 @@ namespace BaseStationInstaller.ViewModels
             {
                 _selectedMotorShield = value;
                 RaisePropertyChanged("SelectedMotorShield");
+                if (SelectedBoard != null)
+                {
+                    WiringDiagram = BaseStationSettings.GetWiringDiagram(SelectedBoard.Platform, SelectedMotorShield.ShieldType);
+                }
             }
         }
 
