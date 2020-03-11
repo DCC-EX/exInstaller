@@ -328,11 +328,11 @@ namespace BaseStationInstaller.ViewModels
             await GitCode();
             if (SelectedConfig.Name == "BaseStation")
             {
-                
+                GetPlatformIO();
             }
             else if (SelectedConfig.Name == "BaseStationClassic")
             {
-                
+                CompileSketch();
             }
         }
 
