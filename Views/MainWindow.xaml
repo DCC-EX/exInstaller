@@ -17,7 +17,7 @@
                     </Grid.ColumnDefinitions>
                     <StackPanel>
                         <TextBlock Margin="5" Style="{DynamicResource MaterialDesignSubtitle2TextBlock}">Select Base Station Type</TextBlock>
-                        <ComboBox Margin="5" Style="{DynamicResource MaterialDesignComboBox}" DisplayMemberPath="Name" ItemsSource="{Binding BaseStations}" SelectedItem="{Binding SelectedConfig}"></ComboBox>
+                        <ComboBox Margin="5" Style="{DynamicResource MaterialDesignComboBox}" DisplayMemberPath="DisplayName" ItemsSource="{Binding BaseStations}" SelectedItem="{Binding SelectedConfig}"></ComboBox>
                         <TextBlock Margin="5" Style="{DynamicResource MaterialDesignSubtitle2TextBlock}" >Select Board Type</TextBlock>
                         <ComboBox Margin="5" Style="{DynamicResource MaterialDesignComboBox}" DisplayMemberPath="Name" ItemsSource="{Binding SelectedSupportedBoards}" SelectedItem="{Binding SelectedBoard}"></ComboBox>
                         <TextBlock Margin="5" Style="{DynamicResource MaterialDesignSubtitle2TextBlock}">Select Motor Shield</TextBlock>

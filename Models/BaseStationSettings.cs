@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -11,13 +12,20 @@ namespace BaseStationInstaller.Models
     {
         public string Name { get; set; }
         public string Git { get; set; }
-        public List<string> Dependencies { get; set; }
+        public List<Dependency> Dependencies { get; set; }
         public string BuildCommand { get; set; }
         public string InitCommand {get; set; } 
         public List<Board> SupportedBoards { get; set; }
         public List<MotorShield> SupportedMotorShields { get; set; }
+        public string DisplayName { get; set; }
+    }
 
-        public string WiringDiagram { get; set; }
+    public struct Dependency
+    {
+        public string Name { get; set; }
+        
+        public string Link { get; set; }
+        public string FileName { get; set; }
     }
 
     public static class BaseStationSettings
@@ -27,12 +35,13 @@ namespace BaseStationInstaller.Models
             {
                 new Config
                 {
-                    Name = "Base Station",
+                    DisplayName = "Base Station",
+                    Name = "BaseStation",
                     Git = "https://github.com/DCC-EX/BaseStation.git",
-                    Dependencies = new List<string>()
+                    Dependencies = new List<Dependency>()
                     {
-                        "https://raw.githubusercontent.com/platformio/platformio/develop/scripts/get-platformio.py",
-                        "https://www.python.org/ftp/python/3.8.2/python-3.8.2-embed-amd64.zip"
+                        new Dependency{Name = "platformio", FileName = "get-platformio.py", Link = "https://raw.githubusercontent.com/platformio/platformio/develop/scripts/get-platformio.py" },
+                        new Dependency{Name = "python", FileName = "python.zip", Link = "https://www.python.org/ftp/python/3.8.2/python-3.8.2-embed-amd64.zip" }
                     },
                     InitCommand = "platformio init",
                     BuildCommand = "platformio run",
@@ -52,13 +61,16 @@ namespace BaseStationInstaller.Models
             {
                 new Config
                 {
-                    Name = "Base Station Classic",
-                    Git = "https://github.com/DCC-EX/BaseStation-Classic.git",
-                    Dependencies = new List<string>()
+                    Name = "BaseStationClassic",
+                    DisplayName = "Base Station Classic",
+                    Git = "https://github.com/DCC-EX/BaseStationClassic.git",
+                    Dependencies = new List<Dependency>()
                     {
-                        "https://www.arduino.cc/download_handler.php?f=/arduino-1.8.12-windows.zip"
+                        new Dependency{ Name = "arduino-1.8.12", FileName = "arduino-1.8.12.zip", Link = "https://downloads.arduino.cc/arduino-1.8.12-windows.zip" }
                     },
-                    BuildCommand = @".\arduino-1.8.12\arduino-builder -compile -logger=machine -hardware .\arduino-1.8.12\hardware -tools .\arduino-1.8.12\tools-builder -tools .\arduino-1.8.12\hardware\tools\avr -built-in-libraries .\arduino-1.8.12\libraries -fqbn=arduino:avr:uno -ide-version=10812 -build-path .\BaseStationClassic\Build -warnings=all -build-cache .\BaseStationClassic\Cache -prefs=build.warn_data_percentage=75 -prefs=runtime.tools.avr-gcc.path=.\arduino-1.8.12\hardware\tools\avr -prefs=runtime.tools.avr-gcc-7.3.0-atmel3.6.1-arduino5.path=.\arduino-1.8.12\hardware\tools\avr -prefs=runtime.tools.arduinoOTA.path=.\arduino-1.8.12\hardware\tools\avr -prefs=runtime.tools.arduinoOTA-1.3.0.path=.\arduino-1.8.12\hardware\tools\avr -prefs=runtime.tools.avrdude.path=.\arduino-1.8.12\hardware\tools\avr -prefs=runtime.tools.avrdude-6.3.0-arduino17.path=.\arduino-1.8.12\hardware\tools\avr -verbose .\BaseStation-Classic\DCCpp\DCCpp_Uno.ino",
+                    //BuildCommand = $@"{ Directory.GetCurrentDirectory()}\arduino-1.8.12\arduino-1.8.12\arduino-builder -compile -logger=machine -hardware { Directory.GetCurrentDirectory()}\arduino-1.8.12\arduino-1.8.12\hardware -tools { Directory.GetCurrentDirectory()}\arduino-1.8.12\arduino-1.8.12\tools-builder -tools { Directory.GetCurrentDirectory()}\arduino-1.8.12\arduino-1.8.12\hardware\tools\avr -built-in-libraries { Directory.GetCurrentDirectory()}\arduino-1.8.12\arduino-1.8.12\libraries -fqbn=arduino:avr:uno -ide-version=10812 -build-path { Directory.GetCurrentDirectory()}\BaseStationClassic\Build -warnings=all -build-cache { Directory.GetCurrentDirectory()}\BaseStationClassic\Cache -prefs=build.warn_data_percentage=75 -prefs=runtime.tools.avr-gcc.path={ Directory.GetCurrentDirectory()}\arduino-1.8.12\arduino-1.8.12\hardware\tools\avr -prefs=runtime.tools.avr-gcc-7.3.0-atmel3.6.1-arduino5.path={ Directory.GetCurrentDirectory()}\arduino-1.8.12\arduino-1.8.12\hardware\tools\avr -prefs=runtime.tools.arduinoOTA.path={ Directory.GetCurrentDirectory()}\arduino-1.8.12\arduino-1.8.12\hardware\tools\avr -prefs=runtime.tools.arduinoOTA-1.3.0.path={ Directory.GetCurrentDirectory()}\arduino-1.8.12\arduino-1.8.12\hardware\tools\avr -prefs=runtime.tools.avrdude.path={ Directory.GetCurrentDirectory()}\arduino-1.8.12\arduino-1.8.12\hardware\tools\avr -prefs=runtime.tools.avrdude-6.3.0-arduino17.path={ Directory.GetCurrentDirectory()}\arduino-1.8.12\arduino-1.8.12\hardware\tools\avr -verbose { Directory.GetCurrentDirectory()}\BaseStationClassic\DCCpp\DCCpp.ino",
+                    BuildCommand = $@"-compile -logger=machine -hardware { Directory.GetCurrentDirectory()}\arduino-1.8.12\arduino-1.8.12\hardware -tools { Directory.GetCurrentDirectory()}\arduino-1.8.12\arduino-1.8.12\tools-builder -tools { Directory.GetCurrentDirectory()}\arduino-1.8.12\arduino-1.8.12\hardware\tools\avr -built-in-libraries { Directory.GetCurrentDirectory()}\arduino-1.8.12\arduino-1.8.12\libraries -fqbn=arduino:avr:uno -ide-version=10812 -build-path { Directory.GetCurrentDirectory()}\BaseStationClassic\Build -warnings=all -build-cache { Directory.GetCurrentDirectory()}\BaseStationClassic\Cache -prefs=build.warn_data_percentage=75 -prefs=runtime.tools.avr-gcc.path={ Directory.GetCurrentDirectory()}\arduino-1.8.12\arduino-1.8.12\hardware\tools\avr -prefs=runtime.tools.avr-gcc-7.3.0-atmel3.6.1-arduino5.path={ Directory.GetCurrentDirectory()}\arduino-1.8.12\arduino-1.8.12\hardware\tools\avr -prefs=runtime.tools.arduinoOTA.path={ Directory.GetCurrentDirectory()}\arduino-1.8.12\arduino-1.8.12\hardware\tools\avr -prefs=runtime.tools.arduinoOTA-1.3.0.path={ Directory.GetCurrentDirectory()}\arduino-1.8.12\arduino-1.8.12\hardware\tools\avr -prefs=runtime.tools.avrdude.path={ Directory.GetCurrentDirectory()}\arduino-1.8.12\arduino-1.8.12\hardware\tools\avr -prefs=runtime.tools.avrdude-6.3.0-arduino17.path={ Directory.GetCurrentDirectory()}\arduino-1.8.12\arduino-1.8.12\hardware\tools\avr -verbose { Directory.GetCurrentDirectory()}\BaseStationClassic\DCCpp\DCCpp.ino",
+
                     SupportedBoards = new List<Board>()
                     {
                         new Board("Uno", ArduinoModel.UnoR3),
@@ -69,6 +81,8 @@ namespace BaseStationInstaller.Models
                         new MotorShield("Arduino Motor Shield", MotorShieldType.Arduino),
                         new MotorShield("Pololu MC33926 Motor Shield", MotorShieldType.Pololu),
                     },
+                    //InitCommand = $@"{ Directory.GetCurrentDirectory()}\arduino-1.8.12\arduino-1.8.12\arduino-builder -dump-prefs -logger=machine -hardware { Directory.GetCurrentDirectory()}\arduino-1.8.12\arduino-1.8.12\hardware -tools { Directory.GetCurrentDirectory()}\arduino-1.8.12\arduino-1.8.12\tools-builder -tools { Directory.GetCurrentDirectory()}\arduino-1.8.12\arduino-1.8.12\hardware\tools\avr -built-in-libraries { Directory.GetCurrentDirectory()}\arduino-1.8.12\arduino-1.8.12\libraries -fqbn=arduino:avr:uno -ide-version=10812 -build-path { Directory.GetCurrentDirectory()}\BaseStationClassic\Build -warnings=all -build-cache { Directory.GetCurrentDirectory()}\BaseStationClassic\Cache -prefs=build.warn_data_percentage=75 -prefs=runtime.tools.avr-gcc.path={ Directory.GetCurrentDirectory()}\arduino-1.8.12\arduino-1.8.12\hardware\tools\avr -prefs=runtime.tools.avr-gcc-7.3.0-atmel3.6.1-arduino5.path={ Directory.GetCurrentDirectory()}\arduino-1.8.12\arduino-1.8.12\hardware\tools\avr -prefs=runtime.tools.arduinoOTA.path={ Directory.GetCurrentDirectory()}\arduino-1.8.12\arduino-1.8.12\hardware\tools\avr -prefs=runtime.tools.arduinoOTA-1.3.0.path={ Directory.GetCurrentDirectory()}\arduino-1.8.12\arduino-1.8.12\hardware\tools\avr -prefs=runtime.tools.avrdude.path={ Directory.GetCurrentDirectory()}\arduino-1.8.12\arduino-1.8.12\hardware\tools\avr -prefs=runtime.tools.avrdude-6.3.0-arduino17.path={ Directory.GetCurrentDirectory()}\arduino-1.8.12\arduino-1.8.12\hardware\tools\avr -verbose { Directory.GetCurrentDirectory()}\BaseStationClassic\DCCpp\DCCpp.ino"
+                    InitCommand = $@"-dump-prefs -logger=machine -hardware { Directory.GetCurrentDirectory()}\arduino-1.8.12\arduino-1.8.12\hardware -tools { Directory.GetCurrentDirectory()}\arduino-1.8.12\arduino-1.8.12\tools-builder -tools { Directory.GetCurrentDirectory()}\arduino-1.8.12\arduino-1.8.12\hardware\tools\avr -built-in-libraries { Directory.GetCurrentDirectory()}\arduino-1.8.12\arduino-1.8.12\libraries -fqbn=arduino:avr:uno -ide-version=10812 -build-path { Directory.GetCurrentDirectory()}\BaseStationClassic\Build -warnings=all -build-cache { Directory.GetCurrentDirectory()}\BaseStationClassic\Cache -prefs=build.warn_data_percentage=75 -prefs=runtime.tools.avr-gcc.path={ Directory.GetCurrentDirectory()}\arduino-1.8.12\arduino-1.8.12\hardware\tools\avr -prefs=runtime.tools.avr-gcc-7.3.0-atmel3.6.1-arduino5.path={ Directory.GetCurrentDirectory()}\arduino-1.8.12\arduino-1.8.12\hardware\tools\avr -prefs=runtime.tools.arduinoOTA.path={ Directory.GetCurrentDirectory()}\arduino-1.8.12\arduino-1.8.12\hardware\tools\avr -prefs=runtime.tools.arduinoOTA-1.3.0.path={ Directory.GetCurrentDirectory()}\arduino-1.8.12\arduino-1.8.12\hardware\tools\avr -prefs=runtime.tools.avrdude.path={ Directory.GetCurrentDirectory()}\arduino-1.8.12\arduino-1.8.12\hardware\tools\avr -prefs=runtime.tools.avrdude-6.3.0-arduino17.path={ Directory.GetCurrentDirectory()}\arduino-1.8.12\arduino-1.8.12\hardware\tools\avr -verbose { Directory.GetCurrentDirectory()}\BaseStationClassic\DCCpp\DCCpp.ino"
                 }
             }
         };
