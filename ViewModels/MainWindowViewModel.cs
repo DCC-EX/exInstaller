@@ -18,7 +18,7 @@ using System.Windows.Input;
 namespace BaseStationInstaller.ViewModels
 
 {
-    public class MainWindowViewModel : ViewModelBase
+    public class MainWindowViewModel : ViewModelBase, IArduinoUploaderLogger
     {
         public MainWindowViewModel()
         {
@@ -327,20 +327,28 @@ namespace BaseStationInstaller.ViewModels
                 {
                     if (!Directory.Exists($@".\{dep.Name}") && dep.FileName.Contains(".zip"))
                     {
-                        ZipFile.ExtractToDirectory($@"./{dep.FileName}", $@"./{dep.Name}");
+                        if (dep.checksum.Equals(BaseStationSettings.CalculateMD5($@"./{dep.Name}"))) {
+                            ZipFile.ExtractToDirectory($@"./{dep.FileName}", $@"./{dep.Name}");
+                        } 
+                        else
+                        {
+                            File.Delete($@"./{dep.Name}");
+                            Busy = false;
+                            RefreshingPorts = false;
+                            Thread.Sleep(5000);
+                            Status = "Prequisite download failed please try again";
+                            CommandManager.InvalidateRequerySuggested();
+                            return;
+                        }
                     }
                 }
             }
             Status = $"Gitting {SelectedConfig.DisplayName}";
-            await GitCode();
             if (SelectedConfig.Name == "BaseStation")
             {
                 GetPlatformIO();
             }
-            else if (SelectedConfig.Name == "BaseStationClassic")
-            {
-                CompileSketch();
-            }
+            await GitCode();
         }
 
         private void GetPlatformIO()
@@ -369,6 +377,15 @@ namespace BaseStationInstaller.ViewModels
 
         private void CompileSketch()
         {
+            Status = "Changing MotorShield options";
+            Progress = 5;
+            string[] config = File.ReadAllLines(@".\BaseStationClassic\DCCpp\Config.h");
+            Progress = 10;
+            config[16] = $"#define MOTOR_SHIELD_TYPE   {(int)SelectedMotorShield.ShieldType}";
+            Progress = 15;
+            File.WriteAllLines(@".\BaseStationClassic\DCCpp\Config.h", config);
+            Progress = 20;
+            Thread.Sleep(1000);
             Status = "Compiling Base Station Classic Sketch";
             
             if (!Directory.Exists(@".\BaseStationClassic\Build"))
@@ -387,38 +404,38 @@ namespace BaseStationInstaller.ViewModels
             start.WindowStyle = ProcessWindowStyle.Hidden;
             Process process = new Process();
             process.StartInfo = start;
-            //process.Start();
-            //process.WaitForExit();
+            process.Start();
+            process.WaitForExit();
             Progress = 50;
             start.Arguments = String.Format($@"{SelectedConfig.BuildCommand}", SelectedBoard.FQBN);
             Console.WriteLine(start.Arguments);
-            //process.Start();
-            //process.WaitForExit();
+            process.Start();
+            process.WaitForExit();
             Status = $"Compilation Complete";
             RefreshingPorts = true;
             Thread.Sleep(1000);
             Status = $"Uploading to {SelectedComPort}";
             Progress = 75;
+            if (File.Exists(@"./upload.log"))
+            {
+                File.Delete(@"./upload.log");
+            }
             ArduinoSketchUploader uploader = new ArduinoSketchUploader(
              new ArduinoSketchUploaderOptions()
              {
                  FileName = $@"{Directory.GetCurrentDirectory()}\BaseStationClassic\Build\DCCpp.ino.hex",
                  PortName = SelectedComPort,
                  ArduinoModel = SelectedBoard.Platform
-             });
+             },this);
             try
             {
                 uploader.UploadSketch();
-                Status = "Upload Completed Successfully";
+                Status = "Upload Completed Successfully. Please check upload.log for more details";
             }
             catch (Exception e)
             {
-                Status = "Upload Failed!!! Please check upload.log for more details";
-                if (File.Exists(@"./upload.log"))
-                {
-                    File.Delete(@"./upload.log");
-                }
-                File.WriteAllText(@"./upload.log", $"Message: {e.Message} {Environment.NewLine} StackTrace: {e.StackTrace}");
+                Status = "Upload Failed!!! Please check upload.log for more details";               
+                File.AppendAllText(@"./upload.log", $"Message: {e.Message} {Environment.NewLine} StackTrace: {e.StackTrace}");
             }
             Progress = 100;
             Thread.Sleep(1000);
@@ -449,12 +466,32 @@ namespace BaseStationInstaller.ViewModels
 
         private async Task GitCode()
         {
+            CloneOptions options = new CloneOptions();
+            options.RepositoryOperationCompleted = new LibGit2Sharp.Handlers.RepositoryOperationCompleted(GotCode);
             Progress = 0;
             if (!Directory.Exists($"./{SelectedConfig.Name}"))
             {
-                Repository.Clone(SelectedConfig.Git, $"./{SelectedConfig.Name}");
+                Repository.Clone(SelectedConfig.Git, $"./{SelectedConfig.Name}", options);
+            } else
+            {
+                if (!Repository.IsValid($"./{SelectedConfig.Name}") )
+                {
+                    Directory.Delete($"./{SelectedConfig.Name}",true);
+                    Repository.Clone(SelectedConfig.Git, $"./{SelectedConfig.Name}", options);
+                } 
+                else
+                {
+                    CompileSketch();
+                }
             }
 
+        }
+
+        private void GotCode(RepositoryOperationContext context)
+        { 
+            if (SelectedConfig.Name.Equals("BaseStationClassic")) {
+                CompileSketch();
+            }
         }
 
         private void Client_DownloadProgressChanged(object sender, DownloadProgressChangedEventArgs e)
@@ -462,6 +499,36 @@ namespace BaseStationInstaller.ViewModels
             Progress = e.ProgressPercentage;
         }
 
-        #endregion
+        public void Error(string message, Exception e)
+        {
+            File.AppendAllText(@"./upload.log", $"Message: {e.Message} {Environment.NewLine} StackTrace: {e.StackTrace}");
+        }
+
+        public void Warn(string message)
+        {
+            File.AppendAllText(@"./upload.log", $"{message}{Environment.NewLine}");
+        }
+
+        public void Info(string message)
+        {
+            Status = message;
+            File.AppendAllText(@"./upload.log", $"{message}{Environment.NewLine}");
+        }
+
+        public void Debug(string message)
+        {
+#if DEBUG
+            File.AppendAllText(@"./upload.log", $"{message}");
+#endif
+        }
+
+        public void Trace(string message)
+        {
+#if DEBUG
+            File.AppendAllText(@"./upload.log", $"{message}");
+#endif
+        }
+
+#endregion
     }
 }
