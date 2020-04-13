@@ -344,10 +344,6 @@ namespace BaseStationInstaller.ViewModels
                 }
             }
             Status = $"Gitting {SelectedConfig.DisplayName}";
-            if (SelectedConfig.Name == "BaseStation")
-            {
-                GetPlatformIO();
-            }
             await GitCode();
         }
 
@@ -379,22 +375,28 @@ namespace BaseStationInstaller.ViewModels
         {
             Status = "Changing MotorShield options";
             Progress = 5;
-            string[] config = File.ReadAllLines(@".\BaseStationClassic\DCCpp\Config.h");
+            string[] config = File.ReadAllLines($@".\{SelectedConfig.Name}\{SelectedConfig.ConfigFile}");
             Progress = 10;
-            config[16] = $"#define MOTOR_SHIELD_TYPE   {(int)SelectedMotorShield.ShieldType}";
+            if (SelectedConfig.Name == "BaseStationClassic")
+            {
+                config[16] = $"#define MOTOR_SHIELD_TYPE   {(int)SelectedMotorShield.ShieldType}";
+            } else  if (SelectedConfig.Name == "BaseStationEX")
+            {
+                config[17] = $"#define MOTOR_SHIELD_TYPE   {(int)SelectedMotorShield.ShieldType}";
+            }
             Progress = 15;
-            File.WriteAllLines(@".\BaseStationClassic\DCCpp\Config.h", config);
+            File.WriteAllLines($@".\{SelectedConfig.Name}\{SelectedConfig.ConfigFile}", config);
             Progress = 20;
             Thread.Sleep(1000);
-            Status = "Compiling Base Station Classic Sketch";
+            Status = $"Compiling {SelectedConfig.DisplayName} Sketch";
             
-            if (!Directory.Exists(@".\BaseStationClassic\Build"))
+            if (!Directory.Exists($@".\{SelectedConfig.Name}\Build"))
             {
-                Directory.CreateDirectory(@".\BaseStationClassic\Build");
+                Directory.CreateDirectory($@".\{SelectedConfig.Name}\Build");
             }
-            if (!Directory.Exists(@".\BaseStationClassic\Cache"))
+            if (!Directory.Exists($@".\{SelectedConfig.Name}\Cache"))
             {
-                Directory.CreateDirectory(@".\BaseStationClassic\Cache");
+                Directory.CreateDirectory($@".\{SelectedConfig.Name}\Cache");
             }
             Progress = 25;
             ProcessStartInfo start = new ProcessStartInfo();
@@ -423,7 +425,7 @@ namespace BaseStationInstaller.ViewModels
             ArduinoSketchUploader uploader = new ArduinoSketchUploader(
              new ArduinoSketchUploaderOptions()
              {
-                 FileName = $@"{Directory.GetCurrentDirectory()}\BaseStationClassic\Build\DCCpp.ino.hex",
+                 FileName = $@"{Directory.GetCurrentDirectory()}\{SelectedConfig.Name}\Build\{SelectedConfig.OutputFileName}.ino.hex",
                  PortName = SelectedComPort,
                  ArduinoModel = SelectedBoard.Platform
              },this);
@@ -434,7 +436,7 @@ namespace BaseStationInstaller.ViewModels
             }
             catch (Exception e)
             {
-                Status = "Upload Failed!!! Please check upload.log for more details";               
+                Status = "Upload Failed!!! Please check upload.log for more details";
                 File.AppendAllText(@"./upload.log", $"Message: {e.Message} {Environment.NewLine} StackTrace: {e.StackTrace}");
             }
             Progress = 100;
@@ -481,6 +483,15 @@ namespace BaseStationInstaller.ViewModels
                 } 
                 else
                 {
+                    using (Repository repo = new Repository($"./{SelectedConfig.Name}"))
+                    {
+                        RepositoryStatus status = repo.RetrieveStatus();
+                        if (status.IsDirty)
+                        {
+                            repo.Reset(ResetMode.Hard);
+                        }
+                        Commands.Pull(repo, new Signature(new Identity("random", "random@random.com"), DateTimeOffset.Now), new PullOptions());
+                    }
                     CompileSketch();
                 }
             }
@@ -489,9 +500,7 @@ namespace BaseStationInstaller.ViewModels
 
         private void GotCode(RepositoryOperationContext context)
         { 
-            if (SelectedConfig.Name.Equals("BaseStationClassic")) {
-                CompileSketch();
-            }
+           CompileSketch();
         }
 
         private void Client_DownloadProgressChanged(object sender, DownloadProgressChangedEventArgs e)

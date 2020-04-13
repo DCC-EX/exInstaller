@@ -15,18 +15,21 @@ namespace BaseStationInstaller.Models
         public string Git { get; set; }
         public List<Dependency> Dependencies { get; set; }
         public string BuildCommand { get; set; }
-        public string InitCommand {get; set; } 
+        public string InitCommand { get; set; }
         public List<Board> SupportedBoards { get; set; }
         public List<MotorShield> SupportedMotorShields { get; set; }
         public string DisplayName { get; set; }
+        public string OutputFileName { get; set; }
 
-       
+        public string ConfigFile { get; set; }
+
+
     }
 
     public struct Dependency
     {
         public string Name { get; set; }
-        
+
         public string Link { get; set; }
         public string FileName { get; set; }
 
@@ -40,16 +43,26 @@ namespace BaseStationInstaller.Models
             {
                 new Config
                 {
-                    DisplayName = "Base Station",
-                    Name = "BaseStation",
-                    Git = "https://github.com/DCC-EX/BaseStation.git",
+                    DisplayName = "Base Station Extended",
+                    Name = "BaseStationEX",
+                    Git = "https://github.com/DCC-EX/BaseStation-EX.git",
+                    OutputFileName = "DCCppEX",
+                    ConfigFile = @"DCCpp_EX\DCCppEX\Config.h",
+                    //Dependencies = new List<Dependency>()
+                    //{
+                    //    new Dependency{Name = "platformio", FileName = "get-platformio.py", Link = "https://raw.githubusercontent.com/platformio/platformio/develop/scripts/get-platformio.py" },
+                    //    new Dependency{Name = "python", FileName = "python.zip", Link = "https://www.python.org/ftp/python/3.8.2/python-3.8.2-embed-amd64.zip", checksum = "1a98565285491c0ea65450e78afe6f8d" }
+                    //},
                     Dependencies = new List<Dependency>()
                     {
-                        new Dependency{Name = "platformio", FileName = "get-platformio.py", Link = "https://raw.githubusercontent.com/platformio/platformio/develop/scripts/get-platformio.py" },
-                        new Dependency{Name = "python", FileName = "python.zip", Link = "https://www.python.org/ftp/python/3.8.2/python-3.8.2-embed-amd64.zip", checksum = "1a98565285491c0ea65450e78afe6f8d" }
+                        new Dependency{ Name = "arduino-1.8.12", FileName = "arduino-1.8.12.zip", Link = "https://downloads.arduino.cc/arduino-1.8.12-windows.zip", checksum = "92471d21a38c33a8095dc243cd7e8e28" }
                     },
-                    InitCommand = "platformio init",
-                    BuildCommand = "platformio run",
+                    //InitCommand = "platformio init",
+                    InitCommand = $@"-dump-prefs -logger=machine -hardware { Directory.GetCurrentDirectory()}\arduino-1.8.12\arduino-1.8.12\hardware -tools { Directory.GetCurrentDirectory()}\arduino-1.8.12\arduino-1.8.12\tools-builder -tools { Directory.GetCurrentDirectory()}\arduino-1.8.12\arduino-1.8.12\hardware\tools\avr -built-in-libraries { Directory.GetCurrentDirectory()}\arduino-1.8.12\arduino-1.8.12\libraries -fqbn={{0}} -ide-version=10812 -build-path { Directory.GetCurrentDirectory()}\BaseStationEX\Build -warnings=all -build-cache { Directory.GetCurrentDirectory()}\BaseStationEX\Cache -prefs=build.warn_data_percentage=75 -prefs=runtime.tools.avr-gcc.path={ Directory.GetCurrentDirectory()}\arduino-1.8.12\arduino-1.8.12\hardware\tools\avr -prefs=runtime.tools.avr-gcc-7.3.0-atmel3.6.1-arduino5.path={ Directory.GetCurrentDirectory()}\arduino-1.8.12\arduino-1.8.12\hardware\tools\avr -prefs=runtime.tools.arduinoOTA.path={ Directory.GetCurrentDirectory()}\arduino-1.8.12\arduino-1.8.12\hardware\tools\avr -prefs=runtime.tools.arduinoOTA-1.3.0.path={ Directory.GetCurrentDirectory()}\arduino-1.8.12\arduino-1.8.12\hardware\tools\avr -prefs=runtime.tools.avrdude.path={ Directory.GetCurrentDirectory()}\arduino-1.8.12\arduino-1.8.12\hardware\tools\avr -prefs=runtime.tools.avrdude-6.3.0-arduino17.path={ Directory.GetCurrentDirectory()}\arduino-1.8.12\arduino-1.8.12\hardware\tools\avr -verbose { Directory.GetCurrentDirectory()}\BaseStationEX\DCCpp_EX\DCCppEX\DCCppEX.ino",
+
+                    //BuildCommand = "platformio run",
+                    BuildCommand = $@"-compile -logger=machine -hardware { Directory.GetCurrentDirectory()}\arduino-1.8.12\arduino-1.8.12\hardware -tools { Directory.GetCurrentDirectory()}\arduino-1.8.12\arduino-1.8.12\tools-builder -tools { Directory.GetCurrentDirectory()}\arduino-1.8.12\arduino-1.8.12\hardware\tools\avr -built-in-libraries { Directory.GetCurrentDirectory()}\arduino-1.8.12\arduino-1.8.12\libraries -fqbn={{0}} -ide-version=10812 -build-path { Directory.GetCurrentDirectory()}\BaseStationEX\Build -warnings=all -build-cache { Directory.GetCurrentDirectory()}\BaseStationEX\Cache -prefs=build.warn_data_percentage=75 -prefs=runtime.tools.avr-gcc.path={ Directory.GetCurrentDirectory()}\arduino-1.8.12\arduino-1.8.12\hardware\tools\avr -prefs=runtime.tools.avr-gcc-7.3.0-atmel3.6.1-arduino5.path={ Directory.GetCurrentDirectory()}\arduino-1.8.12\arduino-1.8.12\hardware\tools\avr -prefs=runtime.tools.arduinoOTA.path={ Directory.GetCurrentDirectory()}\arduino-1.8.12\arduino-1.8.12\hardware\tools\avr -prefs=runtime.tools.arduinoOTA-1.3.0.path={ Directory.GetCurrentDirectory()}\arduino-1.8.12\arduino-1.8.12\hardware\tools\avr -prefs=runtime.tools.avrdude.path={ Directory.GetCurrentDirectory()}\arduino-1.8.12\arduino-1.8.12\hardware\tools\avr -prefs=runtime.tools.avrdude-6.3.0-arduino17.path={ Directory.GetCurrentDirectory()}\arduino-1.8.12\arduino-1.8.12\hardware\tools\avr -verbose { Directory.GetCurrentDirectory()}\BaseStationEX\DCCpp_EX\DCCppEX\DCCppEX.ino",
+
                     SupportedBoards = new List<Board>()
                     {
                         new Board("Uno", ArduinoModel.UnoR3, "arduino:avr:uno"),
@@ -68,6 +81,8 @@ namespace BaseStationInstaller.Models
                 {
                     Name = "BaseStationClassic",
                     DisplayName = "Base Station Classic",
+                    OutputFileName = "DCCpp",
+                    ConfigFile = @"DCCpp\Config.h",
                     Git = "https://github.com/DCC-EX/BaseStation-Classic.git",
                     Dependencies = new List<Dependency>()
                     {
