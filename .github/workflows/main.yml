@@ -32,4 +32,4 @@ jobs:
       run: nuget restore BaseStationInstaller.sln
       
     - name: Build Project
-      run: msbuild BaseStationInstaller.sln
+      run: msbuild BaseStationInstaller.sln /p:Configuration=Release
