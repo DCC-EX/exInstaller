@@ -3,8 +3,7 @@
         <materialDesign:Card>
             <DockPanel>
                 <materialDesign:Card DockPanel.Dock="Bottom">
-                    <DockPanel>
-                        <TextBlock Width="580" Height="20" Margin="5,0,0,0" Text="{Binding Status}" Style="{DynamicResource MaterialDesignSubtitle2TextBlock}"></TextBlock>
+                    <DockPanel>                        
                         <Rectangle VerticalAlignment="Stretch" Width="1" Stroke="{DynamicResource MaterialDesignDivider}" />
                         <ProgressBar Height="10" Margin="5,0,5,0" Value="{Binding Progress}" VerticalAlignment="Center" HorizontalAlignment="Right" DockPanel.Dock="Right" Width="200"></ProgressBar>
                     </DockPanel>
@@ -27,7 +26,8 @@
                         <Button Margin="5" Command="{Binding RefreshComPortButton}" Content="Refresh Ports" Style="{DynamicResource MaterialDesignRaisedButton}"></Button>
                         <Button Margin="5" Command="{Binding CompileUpload}" Style="{DynamicResource MaterialDesignRaisedButton}">Compile and Upload</Button>
                     </StackPanel>
-                    <Image Grid.Column="1" Source="{Binding WiringDiagram}"></Image>
+                    <TextBox Grid.Column="1" Width="580" Height="300" Margin="5,0,0,0" Text="{Binding Status}" TextWrapping="Wrap" VerticalScrollBarVisibility="Auto" IsReadOnly="True" Style="{DynamicResource MaterialDesignTextBox}"></TextBox>
+                    <!--<Image  Source="{Binding WiringDiagram}"></Image>-->
                 </Grid>
 
             </DockPanel>

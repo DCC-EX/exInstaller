@@ -27,6 +27,9 @@ namespace BaseStationInstaller
             InitializeComponent();
             mainWindowViewModel = new MainWindowViewModel();
             DataContext = mainWindowViewModel;
+            Closing += mainWindowViewModel.Closing;
         }
+
+        
     }
 }

@@ -1,9 +1,11 @@
 ﻿//using ArduinoUploader;
 using BaseStationInstaller.Models;
+using BaseStationInstaller.Utils;
 using LibGit2Sharp;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.ComponentModel.Design;
 using System.Diagnostics;
 using System.IO;
 using System.IO.Compression;
@@ -18,21 +20,50 @@ using System.Windows.Input;
 namespace BaseStationInstaller.ViewModels
 
 {
-    public class MainWindowViewModel : ViewModelBase/*, IArduinoUploaderLogger*/
+    public class MainWindowViewModel : ViewModelBase, IMainWindowViewModel
     {
+        ArudinoCliHelper helper;
+        StreamWriter logWriter;
         public MainWindowViewModel()
         {
-            WiringDiagram = "pack://application:,,,/Resources/dcc-ex-logo.png";
+            //WiringDiagram = "pack://application:,,,/Resources/dcc-ex-logo.png";
             SelectedConfig = BaseStationSettings.BaseStationDefaults[0];
             Task task = new Task(RefreshComports);
             task.Start();
+            
+            if (File.Exists("status.log"))
+            {
+                if (File.Exists("status.old.log"))
+                {
+                    File.Delete("status.old.log");
+                }
+                File.Move("status.log", "status.old.log");
+                //File.Create("status.log");
+            }/* else
+            {
+                File.Create("status.log");
+            }*/
+            logWriter = new StreamWriter("status.log");
+            task = new Task(InitArduinoCLI);
+            task.Start();
+        }
+
+
+        void InitArduinoCLI()
+        {
+            helper = new ArudinoCliHelper(this);
+        }
+
+        public void Closing(object sender, System.ComponentModel.CancelEventArgs e)
+        {
+            logWriter.Close();
         }
 
         #region Bindings
         /// <summary>
         /// List of Available Base Station Configs stored in Settings
         /// </summary>
-        
+
         //TODO: Move this to not be hard coded
         public List<Config> BaseStations
         {
@@ -124,10 +155,10 @@ namespace BaseStationInstaller.ViewModels
             {
                 _selectedBoard = value;
                 RaisePropertyChanged("SelectedBoard");
-                if (SelectedMotorShield != null)
-                {
-                    WiringDiagram = BaseStationSettings.GetWiringDiagram(SelectedBoard.Name, SelectedMotorShield.ShieldType);
-                }
+                //if (SelectedMotorShield != null)
+                //{
+                //    WiringDiagram = BaseStationSettings.GetWiringDiagram(SelectedBoard.Name, SelectedMotorShield.ShieldType);
+                //}
             }
         }
 
@@ -143,10 +174,10 @@ namespace BaseStationInstaller.ViewModels
             {
                 _selectedMotorShield = value;
                 RaisePropertyChanged("SelectedMotorShield");
-                if (SelectedBoard != null)
-                {
-                    WiringDiagram = BaseStationSettings.GetWiringDiagram(SelectedBoard.Name, SelectedMotorShield.ShieldType);
-                }
+                //if (SelectedBoard != null)
+                //{
+                //    WiringDiagram = BaseStationSettings.GetWiringDiagram(SelectedBoard.Name, SelectedMotorShield.ShieldType);
+                //}
             }
         }
 
@@ -174,7 +205,22 @@ namespace BaseStationInstaller.ViewModels
             }
             set
             {
-                _status = value;
+                if (value.Contains(Environment.NewLine))
+                {
+                    _status = value;
+                } else
+                {
+                    _status = value + Environment.NewLine;
+                }
+                
+                if (logWriter != null)
+                {
+                    /*using (logWriter)
+                    {
+                        logWriter.Write($"{_status}{Environment.NewLine}");
+                        logWriter.Flush();
+                    }*/
+                }
                 RaisePropertyChanged("Status");
             }
         }
@@ -286,12 +332,15 @@ namespace BaseStationInstaller.ViewModels
         #endregion
 
         #region Methods
+        /// <summary>
+        /// Refresh list of avaliable comports
+        /// </summary>
         private async void RefreshComports()
         {
             Busy = true;
             RefreshingPorts = true;
             Progress = 0;
-            Status = "Refreshing Ports...";
+            Status += "Refreshing Ports..." + Environment.NewLine;
             for (int i = 0; i < 5; i++)
             {
                 Progress += 20;
@@ -308,7 +357,7 @@ namespace BaseStationInstaller.ViewModels
             RefreshingPorts = false;
             Thread.Sleep(500);
             Progress = 0;
-            Status = "Idle";
+            Status += "Idle" + Environment.NewLine;
             Thread.Sleep(10000);
             CommandManager.InvalidateRequerySuggested();
         }
@@ -323,47 +372,27 @@ namespace BaseStationInstaller.ViewModels
         int currDep = 0;
         private async Task DownloadPreReqs()
         {
-            Status = "Starting Dependency Downloads";
+            Status += "Starting Dependency Downloads" + Environment.NewLine;
             Thread.Sleep(500);
-            foreach (Dependency dep in SelectedConfig.Dependencies)
+            foreach (Library dep in SelectedConfig.Libraries)
             {
-                Status = $"Downloading {dep.Name}";
-                if (!File.Exists($@"./{dep.FileName}"))
+                if (dep.LibraryDownloadAvailable)
                 {
-                    using (WebClient client = new WebClient())
-                    {
-                        client.DownloadFileCompleted += Client_DownloadFileCompleted; ;
-                        client.DownloadProgressChanged += Client_DownloadProgressChanged;
-                        await client.DownloadFileTaskAsync(new Uri(dep.Link), $@"./{dep.FileName}");
-                    }
-                } 
+                    helper.GetLibrary(dep.Name);
+                }
                 else
                 {
-                    if (!Directory.Exists($@".\{dep.Name}") && dep.FileName.Contains(".zip"))
-                    {
-                        if (dep.checksum.Equals(BaseStationSettings.CalculateMD5($@"./{dep.Name}"))) {
-                            ZipFile.ExtractToDirectory($@"./{dep.FileName}", $@"./{dep.Name}");
-                        } 
-                        else
-                        {
-                            File.Delete($@"./{dep.Name}");
-                            Busy = false;
-                            RefreshingPorts = false;
-                            Thread.Sleep(5000);
-                            Status = "Prequisite download failed please try again";
-                            CommandManager.InvalidateRequerySuggested();
-                            return;
-                        }
-                    }
+                    await GitCode(dep.Repo, dep.Location);
                 }
             }
-            Status = $"Gitting {SelectedConfig.DisplayName}";
-            await GitCode();
+            Status += $"Gitting {SelectedConfig.DisplayName}" + Environment.NewLine;
+            await GitCode(SelectedConfig.Git,$@".\{SelectedConfig.Name}");
+            CompileSketch();
         }
 
-        private void GetPlatformIO()
+        /*private void GetPlatformIO()
         {
-            Status = "Getting Platform IO";
+            Status += "Getting Platform IO";
             
             ProcessStartInfo start = new ProcessStartInfo();
             start.Verb = "runas";
@@ -382,87 +411,62 @@ namespace BaseStationInstaller.ViewModels
                     Console.WriteLine(result);
                 }
             }
-        }
+        }*/
 
 
         private void CompileSketch()
         {
-            Status = "Changing MotorShield options";
+            Status += "Changing MotorShield options" + Environment.NewLine;
             Progress = 5;
             string[] config = File.ReadAllLines($@".\{SelectedConfig.Name}\{SelectedConfig.ConfigFile}");
             Progress = 10;
-            if (SelectedConfig.Name == "BaseStationClassic")
-            {
-                config[16] = $"#define MOTOR_SHIELD_TYPE   {(int)SelectedMotorShield.ShieldType}";
-            } else  if (SelectedConfig.Name == "BaseStationEX")
-            {
-                config[17] = $"#define MOTOR_SHIELD_TYPE   {(int)SelectedMotorShield.ShieldType}";
+            switch (SelectedConfig.Name) {
+                case "BaseStationClassic":
+                    config[16] = $"#define MOTOR_SHIELD_TYPE   {(int)SelectedMotorShield.ShieldType}";
+                    
+                    break;
+                case "BaseStationEx":
+                    config[17] = $"#define MOTOR_SHIELD_TYPE   {(int)SelectedMotorShield.ShieldType}";
+                    break;
+                case "CSTest":
+                    switch(SelectedMotorShield.ShieldType)
+                    {
+                        case MotorShieldType.Arduino:
+
+                            break;
+                        case MotorShieldType.Pololu:
+                            config[14] = $"// DCC* mainTrack = DCC::Create_Arduino_L298Shield_Main(50);";
+                            config[15] = $"// DCC* progTrack = DCC::Create_Arduino_L298Shield_Prog(2);";
+                            config[17] = $"DCC* mainTrack = DCC::Create_Pololu_MC33926Shield_Main(50);";
+                            config[18] = $"DCC* progTrack = DCC::Create_Pololu_MC33926Shield_Prog(2);";
+                            break;
+                    }
+                    break;
+
             }
             Progress = 15;
             File.WriteAllLines($@".\{SelectedConfig.Name}\{SelectedConfig.ConfigFile}", config);
             Progress = 20;
             Thread.Sleep(1000);
-            Status = $"Compiling {SelectedConfig.DisplayName} Sketch";
+            Status += $"Compiling {SelectedConfig.DisplayName} Sketch" + Environment.NewLine;
+            helper.ArduinoComplieSketch(SelectedBoard.FQBN, $@"{SelectedConfig.Name}/{SelectedConfig.InputFileLocation}");
             
-            if (!Directory.Exists($@".\{SelectedConfig.Name}\Build"))
-            {
-                Directory.CreateDirectory($@".\{SelectedConfig.Name}\Build");
-            }
-            if (!Directory.Exists($@".\{SelectedConfig.Name}\Cache"))
-            {
-                Directory.CreateDirectory($@".\{SelectedConfig.Name}\Cache");
-            }
-            Progress = 25;
-            ProcessStartInfo start = new ProcessStartInfo();
-            start.FileName = $@".\arduino-1.8.12\arduino-1.8.12\arduino-builder.exe";
-            start.Arguments = String.Format($@"{SelectedConfig.InitCommand}", SelectedBoard.FQBN);
-            start.UseShellExecute = true;
-            start.WindowStyle = ProcessWindowStyle.Hidden;
-            Process process = new Process();
-            process.StartInfo = start;
-            process.Start();
-            process.WaitForExit();
-            Progress = 50;
-            start.Arguments = String.Format($@"{SelectedConfig.BuildCommand}", SelectedBoard.FQBN);
-            Console.WriteLine(start.Arguments);
-            process.Start();
-            process.WaitForExit();
-            Status = $"Compilation Complete";
             RefreshingPorts = true;
             Thread.Sleep(1000);
-            Status = $"Uploading to {SelectedComPort}";
+            Status += $"Uploading to {SelectedComPort}" + Environment.NewLine;
             Progress = 75;
-            if (File.Exists(@"./upload.log"))
-            {
-                File.Delete(@"./upload.log");
-            }
-            /*ArduinoSketchUploader uploader = new ArduinoSketchUploader(
-             new ArduinoSketchUploaderOptions()
-             {
-                 FileName = $@"{Directory.GetCurrentDirectory()}\{SelectedConfig.Name}\Build\{SelectedConfig.OutputFileName}.ino.hex",
-                 PortName = SelectedComPort,
-                 ArduinoModel = SelectedBoard.Platform
-             },this);
-            try
-            {
-                uploader.UploadSketch();
-                Status = "Upload Completed Successfully. Please check upload.log for more details";
-            }
-            catch (Exception e)
-            {
-                Status = "Upload Failed!!! Please check upload.log for more details";
-                File.AppendAllText(@"./upload.log", $"Message: {e.Message} {Environment.NewLine} StackTrace: {e.StackTrace}");
-            }*/
+            helper.UploadSketch(SelectedBoard.FQBN, SelectedComPort);
             Progress = 100;
             Thread.Sleep(1000);
             Progress = 0;
             Busy = false;
             RefreshingPorts = false;
         }
-        private void Client_DownloadFileCompleted(object sender, System.ComponentModel.AsyncCompletedEventArgs e)
+
+        /*private void Client_DownloadFileCompleted(object sender, System.ComponentModel.AsyncCompletedEventArgs e)
         {
             currDep++;
-            Status = "Download Completed";
+            Status += "Download Completed";
             Progress = 100;
             if (currDep == SelectedConfig.Dependencies.Count)
             {
@@ -470,7 +474,7 @@ namespace BaseStationInstaller.ViewModels
                 {
                     if (!Directory.Exists($@"./{dep.Name}"))
                     {
-                        Status = $"Extracting {dep.Name}";
+                        Status += $"Extracting {dep.Name}";
                         if (dep.FileName.Contains(".zip"))
                         {
                             ZipFile.ExtractToDirectory($@"./{dep.FileName}", $@"./{dep.Name}");
@@ -478,26 +482,26 @@ namespace BaseStationInstaller.ViewModels
                     }
                 }
             }
-        }
+        }*/
 
-        private async Task GitCode()
+        private async Task GitCode(string url, string location)
         {
             CloneOptions options = new CloneOptions();
             options.RepositoryOperationCompleted = new LibGit2Sharp.Handlers.RepositoryOperationCompleted(GotCode);
             Progress = 0;
-            if (!Directory.Exists($"./{SelectedConfig.Name}"))
+            if (!Directory.Exists($"./{location}"))
             {
-                Repository.Clone(SelectedConfig.Git, $"./{SelectedConfig.Name}", options);
+                Repository.Clone(url, $"./{location}", options);
             } else
             {
-                if (!Repository.IsValid($"./{SelectedConfig.Name}") )
+                if (!Repository.IsValid($"./{location}") )
                 {
-                    Directory.Delete($"./{SelectedConfig.Name}",true);
-                    Repository.Clone(SelectedConfig.Git, $"./{SelectedConfig.Name}", options);
+                    Directory.Delete($"./{location}",true);
+                    Repository.Clone(url, $"./{location}", options);
                 } 
                 else
                 {
-                    using (Repository repo = new Repository($"./{SelectedConfig.Name}"))
+                    using (Repository repo = new Repository($"./{location}"))
                     {
                         RepositoryStatus status = repo.RetrieveStatus();
                         if (status.IsDirty)
@@ -506,7 +510,6 @@ namespace BaseStationInstaller.ViewModels
                         }
                         Commands.Pull(repo, new Signature(new Identity("random", "random@random.com"), DateTimeOffset.Now), new PullOptions());
                     }
-                    CompileSketch();
                 }
             }
 
@@ -520,36 +523,6 @@ namespace BaseStationInstaller.ViewModels
         private void Client_DownloadProgressChanged(object sender, DownloadProgressChangedEventArgs e)
         {
             Progress = e.ProgressPercentage;
-        }
-
-        public void Error(string message, Exception e)
-        {
-            File.AppendAllText(@"./upload.log", $"Message: {e.Message} {Environment.NewLine} StackTrace: {e.StackTrace}");
-        }
-
-        public void Warn(string message)
-        {
-            File.AppendAllText(@"./upload.log", $"{message}{Environment.NewLine}");
-        }
-
-        public void Info(string message)
-        {
-            Status = message;
-            File.AppendAllText(@"./upload.log", $"{message}{Environment.NewLine}");
-        }
-
-        public void Debug(string message)
-        {
-#if DEBUG
-            File.AppendAllText(@"./upload.log", $"{message}");
-#endif
-        }
-
-        public void Trace(string message)
-        {
-#if DEBUG
-            File.AppendAllText(@"./upload.log", $"{message}");
-#endif
         }
 
 #endregion
