@@ -87,14 +87,14 @@ namespace BaseStationInstaller.Models
                 {
                     DisplayName = "Daves CommandStation Test",
                     Name = "CSTest",
-                    Git = "https://github.com/davidcutting42/CommandStation-DCC.git",
+                    Git = "https://github.com/DCC-EX/CommandStation-DCC.git",
                     ConfigFile = @"src/main.cpp",
                     InputFileLocation = @"src/main.cpp",
                     AllowAdvanced = true,
                     Libraries = new List<Library>()
                     {
                         new Library{ Name = "DIO2", Location = $@"libraries/DIO2", Repo = "https://github.com/Locoduino/DIO2.git", LibraryDownloadAvailable = true },
-                        new Library{ Name = "CommandStation", Location = $@"libraries/CommandStation", Repo = "https://github.com/davidcutting42/CommandStation.git", LibraryDownloadAvailable = false },
+                        new Library{ Name = "CommandStation", Location = $@"libraries/CommandStation", Repo = "https://github.com/DCC-EX/CommandStation.git", LibraryDownloadAvailable = false },
                         new Library{ Name = "ArduinoTimers", Location = $@"libraries/ArduinoTimers", Repo = "https://github.com/davidcutting42/ArduinoTimers.git", LibraryDownloadAvailable = false },
                        new Library{ Name = "SparkFun External EEPROM Arduino Library", Location = $@"libraries/SparkFun_External_EEPROM_Arduino_Library", Repo = "https://github.com/sparkfun/SparkFun_External_EEPROM_Arduino_Library.git", LibraryDownloadAvailable = true}
                     },
