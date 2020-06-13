@@ -3,21 +3,21 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using ArduinoUploader.Hardware;
+//using ArduinoUploader.Hardware;
 
 namespace BaseStationInstaller.Models
 {
 
     public class Board
     {
-        public Board(string name, ArduinoModel platform, string fqbn)
+        public Board(string name, /*ArduinoModel platform,*/ string fqbn)
         {
             Name = name;
-            Platform = platform;
+            //Platform = platform;
             FQBN = fqbn;
         }
         public string Name { get; set; }
-        public ArduinoModel Platform { get; set; }
+        //public ArduinoModel Platform { get; set; }
 
         public string FQBN;
     }
