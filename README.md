@@ -1,14 +1,15 @@
 # BaseStation-Installer 
 ![.NET Core](https://github.com/DCC-EX/BaseStation-Installer/workflows/.NET%20Core/badge.svg)
+This project provides a "one-click" installer for DCC++. At runtime, you can select either the "Classic" version or the new "DCC++ EX" version.
 
-## Requirements:
+## Requirements
 
 1.Windows/Linux/MacOS Computer
 2. DCC-EX Compatible motor shield
 3. DCC-EX Compatible Microcontroller such as Arduino Mega/Uno or SparkFun SAM21 Development board
 4. Trains 🚄🚅🚈🚝🚞🚃🚋🚆🚉🚊🚇🚟🚠🚡🚂
 
-This project provides a "one-click" installer for DCC++. At runtime, you can select either the "Classic" version or the new "DCC++ EX" version. Here are the steps to use this installer:
+## Here are the steps to use this installer
 
 1. Download from Releases Section for your Operating system.
 2. Unzip files from archive into separate folder
@@ -26,4 +27,4 @@ https://www.trainboard.com/highball/index.php?threads/dcc-update-project-2020.13
 
 https://discord.gg/y2sB4Fp
 
-## How to edit and compile this project:
+## How to edit and compile this project
