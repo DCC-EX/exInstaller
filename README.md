@@ -4,7 +4,7 @@ This project provides a "one-click" installer for DCC++. At runtime, you can sel
 
 ## Requirements
 
-1.Windows/Linux/MacOS Computer
+1. Windows/Linux/MacOS Computer
 2. DCC-EX Compatible motor shield
 3. DCC-EX Compatible Microcontroller such as Arduino Mega/Uno or SparkFun SAM21 Development board
 4. Trains 🚄🚅🚈🚝🚞🚃🚋🚆🚉🚊🚇🚟🚠🚡🚂
