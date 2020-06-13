@@ -10,6 +10,7 @@ using System.IO.Ports;
 using System.Linq;
 using System.Net;
 using System.Reactive;
+using System.Runtime.InteropServices;
 using System.Runtime.InteropServices.ComTypes;
 using System.Text;
 using System.Threading;
@@ -60,6 +61,28 @@ namespace BaseStationInstaller.ViewModels
 
         void InitArduinoCLI()
         {
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+                if (!File.Exists("arduino-cli.exe"))
+                {
+                    //File.WriteAllBytes("arduino-cli.exe", Resources.ResourceManager);
+                }
+            }
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+            {
+                if (!File.Exists("arduino-cli"))
+                {
+                    //File.WriteAllBytes("arduino-cli", Properties.Resources.file);
+                }
+            }
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+            {
+                if (!File.Exists("arduino-cli"))
+                {
+                    //File.WriteAllBytes("arduino-cli", Properties.Resources.);
+                }
+            }
+
             helper = new ArudinoCliHelper(this);
         }
 

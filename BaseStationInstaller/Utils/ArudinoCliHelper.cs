@@ -14,7 +14,7 @@ namespace BaseStationInstaller.Utils
         {
             mainWindowView = mWindow;
             ProcessStartInfo start = new ProcessStartInfo();
-            start.FileName = $@"arduino-cli.exe";
+            start.FileName = $@"arduino-cli";
             start.Arguments = "core update-index";
             start.UseShellExecute = false;
             start.WindowStyle = ProcessWindowStyle.Hidden;
@@ -71,7 +71,7 @@ namespace BaseStationInstaller.Utils
         public void ArduinoComplieSketch(string fqbn, string location)
         {
             ProcessStartInfo start = new ProcessStartInfo();
-            start.FileName = $@".\arduino-cli.exe";
+            start.FileName = $@".\arduino-cli";
             start.Arguments = $"compile --fqbn {fqbn} ./{location} -o basestation.hex";
             start.UseShellExecute = false;
             start.WindowStyle = ProcessWindowStyle.Hidden;
@@ -92,7 +92,7 @@ namespace BaseStationInstaller.Utils
         public void UploadSketch(string fqbn, string port)
         {
             ProcessStartInfo start = new ProcessStartInfo();
-            start.FileName = $@".\arduino-cli.exe";
+            start.FileName = $@".\arduino-cli";
             start.Arguments = $@"upload --fqbn {fqbn} -p {port} -i basestation.hex -v -t";
             start.UseShellExecute = false;
             start.WindowStyle = ProcessWindowStyle.Hidden;
@@ -110,7 +110,7 @@ namespace BaseStationInstaller.Utils
         {
             //arduino-cli board list
             ProcessStartInfo start = new ProcessStartInfo();
-            start.FileName = $@".\arduino-cli.exe";
+            start.FileName = $@".\arduino-cli";
             start.Arguments = "board list";
             start.UseShellExecute = false;
             start.WindowStyle = ProcessWindowStyle.Hidden;
@@ -127,7 +127,7 @@ namespace BaseStationInstaller.Utils
         public void GetLibrary(string name)
         {
             ProcessStartInfo start = new ProcessStartInfo();
-            start.FileName = $@".\arduino-cli.exe";
+            start.FileName = $@".\arduino-cli";
             start.Arguments = $"lib install \"{name}\"";
             start.UseShellExecute = false;
             start.WindowStyle = ProcessWindowStyle.Hidden;

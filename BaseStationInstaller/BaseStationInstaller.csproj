@@ -1,7 +1,10 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <OutputType>WinExe</OutputType>
+    <OutputType>Exe</OutputType>
     <TargetFramework>netcoreapp3.1</TargetFramework>
+    <RuntimeIdentifiers>win10-x64;osx.10.12-x64</RuntimeIdentifiers>
+    <StartupObject>BaseStationInstaller.Program</StartupObject>
+    <AssemblyName>BaseStationInstaller</AssemblyName>
   </PropertyGroup>
   <ItemGroup>
     <Compile Update="**\*.xaml.cs">
@@ -22,9 +25,6 @@
     <PackageReference Include="System.IO.Ports" Version="4.7.0" />
   </ItemGroup>
   <ItemGroup>
-    <None Update="arduino-cli.exe">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
     <None Update="arduino-cli.yaml">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
