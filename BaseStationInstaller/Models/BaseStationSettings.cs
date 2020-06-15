@@ -85,8 +85,8 @@ namespace BaseStationInstaller.Models
             },{
             new Config
                 {
-                    DisplayName = "Daves CommandStation Test",
-                    Name = "CSTest",
+                    DisplayName = "CommandStation Test",
+                    Name = "CommandStation",
                     Git = "https://github.com/DCC-EX/CommandStation-DCC.git",
                     ConfigFile = @"src/main.cpp",
                     InputFileLocation = @"src/main.cpp",

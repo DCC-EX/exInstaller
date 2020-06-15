@@ -2,7 +2,7 @@
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <TargetFramework>netcoreapp3.1</TargetFramework>
-    <RuntimeIdentifiers>win10-x64;osx.10.12-x64</RuntimeIdentifiers>
+    <RuntimeIdentifiers>win-x86;win-x64;osx-x64;linux-x64;linux-arm;linux-arm64</RuntimeIdentifiers>
     <StartupObject>BaseStationInstaller.Program</StartupObject>
     <AssemblyName>BaseStationInstaller</AssemblyName>
   </PropertyGroup>
@@ -25,7 +25,31 @@
     <PackageReference Include="System.IO.Ports" Version="4.7.0" />
   </ItemGroup>
   <ItemGroup>
+    <None Update="arduino-cli-runtimes\Linux_32bit\arduino-cli">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="arduino-cli-runtimes\Linux_64bit\arduino-cli">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="arduino-cli-runtimes\Linux_ARM64\arduino-cli">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="arduino-cli-runtimes\Linux_ARM\arduino-cli">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="arduino-cli-runtimes\macOS_64bit\arduino-cli">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="arduino-cli-runtimes\Windows_32bit\arduino-cli.exe">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="arduino-cli-runtimes\Windows_64bit\arduino-cli.exe">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <None Update="arduino-cli.yaml">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="arduino-cli-runtimes/*">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
   </ItemGroup>

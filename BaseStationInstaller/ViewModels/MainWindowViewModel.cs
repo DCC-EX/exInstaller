@@ -61,29 +61,58 @@ namespace BaseStationInstaller.ViewModels
 
         void InitArduinoCLI()
         {
+            string cliRuntime = "";
+            string destRuntime = "";
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
-                if (!File.Exists("arduino-cli.exe"))
+               if (RuntimeInformation.OSArchitecture == Architecture.X64)
                 {
-                    //File.WriteAllBytes("arduino-cli.exe", Resources.ResourceManager);
+                    destRuntime = "arduino-cli.exe";
+                    cliRuntime = "arduino-cli-runtimes\\Windows_64bit\\arduino-cli.exe";
+                } else if (RuntimeInformation.OSArchitecture == Architecture.X86)
+                {
+                    destRuntime = "arduino-cli.exe";
+                    cliRuntime = "arduino-cli-runtimes\\Windows_32bit\\arduino-cli.exe";
                 }
             }
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+            else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
             {
-                if (!File.Exists("arduino-cli"))
-                {
-                    //File.WriteAllBytes("arduino-cli", Properties.Resources.file);
-                }
+                destRuntime = "arduino-cli";
+                cliRuntime = "arduino-cli-runtimes\\macOS_64bit\\arduino-cli";
             }
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+            else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
             {
-                if (!File.Exists("arduino-cli"))
+                switch(RuntimeInformation.OSArchitecture)
                 {
-                    //File.WriteAllBytes("arduino-cli", Properties.Resources.);
+                    case Architecture.X86:
+                        destRuntime = "arduino-cli";
+                        cliRuntime = "arduino-cli-runtimes\\Linux_32bit\\arduino-cli";
+                        break;
+                    case Architecture.X64:
+                        destRuntime = "arduino-cli";
+                        cliRuntime = "arduino-cli-runtimes\\Linux_64bit\\arduino-cli";
+                        break;
+                    case Architecture.Arm:
+                        destRuntime = "arduino-cli";
+                        cliRuntime = "arduino-cli-runtimes\\Linux_ARM\\arduino-cli";
+                        break;
+                    case Architecture.Arm64:
+                        destRuntime = "arduino-cli";
+                        cliRuntime = "arduino-cli-runtimes\\Linux_ARM64\\arduino-cli";
+                        break;
                 }
             }
-
-            helper = new ArudinoCliHelper(this);
+            if (!String.IsNullOrEmpty(destRuntime))
+            {
+                if (!File.Exists(destRuntime))
+                {
+                    File.Copy(cliRuntime, destRuntime);
+                }
+                helper = new ArudinoCliHelper(this);
+            } else
+            {
+                Status += "This platform is not supported by this installer at this time";
+            }
         }
 
         public void Closing(object sender, System.ComponentModel.CancelEventArgs e)
@@ -388,7 +417,7 @@ namespace BaseStationInstaller.ViewModels
                 case "BaseStationEx":
                     config[17] = $"#define MOTOR_SHIELD_TYPE   {(int)SelectedMotorShield.ShieldType}";
                     break;
-                case "CSTest":
+                case "CommandStation":
                     switch (SelectedMotorShield.ShieldType)
                     {
                         case MotorShieldType.Arduino:
