@@ -2,14 +2,14 @@ name: .NET Core
 
 on:
   push:
-    branches: [ master ]
+    branches: [ master, development ]
   pull_request:
-    branches: [ master ]
+    branches: [ master, development ]
 
 jobs:
   build:
 
-    runs-on: ubuntu-latest
+    runs-on: macos-latest
 
     steps:
     - uses: actions/checkout@v2
@@ -19,7 +19,17 @@ jobs:
         dotnet-version: 3.1.101
     - name: Install dependencies
       run: dotnet restore
-    - name: Build
-      run: dotnet build --configuration Release --no-restore 
-    - name: Test
-      run: dotnet test --no-restore --verbosity normal
+    - name: Build Windows x86
+      run: dotnet build --configuration Release --no-restore --runtime win-x86
+      - name: Build Windows x64
+      run: dotnet build --configuration Release --no-restore --runtime win-x64
+      - name: Build Mac OSX x64 
+      run: dotnet build --configuration Release --no-restore --runtime osx-x64
+      - name: Build Linux x86
+      run: dotnet build --configuration Release --no-restore --runtime linux-x86
+      - name: Build Linux x64
+      run: dotnet build --configuration Release --no-restore --runtime linux-x64
+      - name: Build Linux ARM
+      run: dotnet build --configuration Release --no-restore --runtime linux-arm
+      - name: Build Linux ARM64
+      run: dotnet build --configuration Release --no-restore --runtime linux-arm64
