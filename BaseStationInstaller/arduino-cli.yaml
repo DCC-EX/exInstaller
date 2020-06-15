@@ -1,0 +1,17 @@
+board_manager:
+    additional_urls: [
+        https://raw.githubusercontent.com/sparkfun/Arduino_Boards/master/IDE_Board_Manager/package_sparkfun_index.json
+    ]
+daemon:
+    port: "50051"
+directories:
+    data: .
+    downloads: .
+    user: .
+logging:
+    file: ""
+    format: text
+    level: info
+telemetry:
+    addr: :9090
+    enabled: true
