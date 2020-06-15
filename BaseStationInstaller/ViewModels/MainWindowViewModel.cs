@@ -16,12 +16,13 @@ using System.Runtime.InteropServices.ComTypes;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Diagnostics;
 
 namespace BaseStationInstaller.ViewModels
 {
     public class MainWindowViewModel : ViewModelBase, IMainWindowViewModel
     {
-       ArudinoCliHelper helper;
+        ArudinoCliHelper helper;
         StreamWriter logWriter;
         Signature sig = new Signature(new Identity("random", "random@random.com"), DateTimeOffset.Now);
         public MainWindowViewModel()
@@ -46,24 +47,22 @@ namespace BaseStationInstaller.ViewModels
             task = new Task(InitArduinoCLI);
             task.Start();
             RefreshComPortButton = ReactiveCommand.Create(RefreshComPortsCommand);
-            IObservable<bool> canExecuteCompile = this.WhenAnyValue(x => x.Busy,
-                x => x.SelectedBoard.Name, x => x.SelectedMotorShield.Name, 
-                (busy, board, shield) =>
-                !busy && !String.IsNullOrEmpty(board) && !String.IsNullOrEmpty(shield)
-                ).ObserveOn(RxApp.MainThreadScheduler);
-            CompileUpload = ReactiveCommand.Create(CompileandUploadCommand, canExecuteCompile);
+            CompileUpload = ReactiveCommand.Create(CompileandUploadCommand, this.WhenAnyValue(x => x.Busy, (busy) =>
+            {
+                return !busy;
+            }).ObserveOn(RxApp.MainThreadScheduler));
             SelectedConfig = BaseStationSettings.BaseStationDefaults[0];
             this.WhenAnyValue(x => x.SelectedConfig).Subscribe(ProcessConfigChange);
             SelectedConfig = BaseStationSettings.BaseStationDefaults[0];
         }
 
-        
+
 
         private void ProcessConfigChange(Config cfg)
         {
             SelectedSupportedBoards = new ObservableCollection<Board>(SelectedConfig.SupportedBoards);
             SelectedSupportedMotorShields = new ObservableCollection<MotorShield>(SelectedConfig.SupportedMotorShields);
-            GitCode(SelectedConfig.Git, $@".\{SelectedConfig.Name}");
+            GitCode(SelectedConfig.Git, $@"{SelectedConfig.Name}");
         }
 
         void InitArduinoCLI()
@@ -73,11 +72,12 @@ namespace BaseStationInstaller.ViewModels
             string destRuntime = "";
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
-               if (RuntimeInformation.OSArchitecture == Architecture.X64)
+                if (RuntimeInformation.OSArchitecture == Architecture.X64)
                 {
                     destRuntime = "arduino-cli.exe";
                     cliRuntime = "arduino-cli-runtimes\\Windows_64bit\\arduino-cli.exe";
-                } else if (RuntimeInformation.OSArchitecture == Architecture.X86)
+                }
+                else if (RuntimeInformation.OSArchitecture == Architecture.X86)
                 {
                     destRuntime = "arduino-cli.exe";
                     cliRuntime = "arduino-cli-runtimes\\Windows_32bit\\arduino-cli.exe";
@@ -86,27 +86,27 @@ namespace BaseStationInstaller.ViewModels
             else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
             {
                 destRuntime = "arduino-cli";
-                cliRuntime = "arduino-cli-runtimes\\macOS_64bit\\arduino-cli";
+                cliRuntime = "arduino-cli-runtimes/macOS_64bit/arduino-cli";
             }
             else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
             {
-                switch(RuntimeInformation.OSArchitecture)
+                switch (RuntimeInformation.OSArchitecture)
                 {
                     case Architecture.X86:
                         destRuntime = "arduino-cli";
-                        cliRuntime = "arduino-cli-runtimes\\Linux_32bit\\arduino-cli";
+                        cliRuntime = "arduino-cli-runtimes/Linux_32bit/arduino-cli";
                         break;
                     case Architecture.X64:
                         destRuntime = "arduino-cli";
-                        cliRuntime = "arduino-cli-runtimes\\Linux_64bit\\arduino-cli";
+                        cliRuntime = "arduino-cli-runtimes/Linux_64bit/arduino-cli";
                         break;
                     case Architecture.Arm:
                         destRuntime = "arduino-cli";
-                        cliRuntime = "arduino-cli-runtimes\\Linux_ARM\\arduino-cli";
+                        cliRuntime = "arduino-cli-runtimes/Linux_ARM/arduino-cli";
                         break;
                     case Architecture.Arm64:
                         destRuntime = "arduino-cli";
-                        cliRuntime = "arduino-cli-runtimes\\Linux_ARM64\\arduino-cli";
+                        cliRuntime = "arduino-cli-runtimes/Linux_ARM64/arduino-cli";
                         break;
                 }
             }
@@ -115,9 +115,23 @@ namespace BaseStationInstaller.ViewModels
                 if (!File.Exists(destRuntime))
                 {
                     File.Copy(cliRuntime, destRuntime);
+                    if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux) || RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+                    {
+                        ProcessStartInfo start = new ProcessStartInfo();
+                        start.FileName = $@"chmod";
+                        start.Arguments = $"a+x {destRuntime}";
+                        start.UseShellExecute = false;
+                        start.WindowStyle = ProcessWindowStyle.Hidden;
+                        start.CreateNoWindow = true;
+                        start.RedirectStandardOutput = true;
+                        Process process = new Process();
+                        process.StartInfo = start;
+                        process.Start();
+                    }
                 }
                 helper = new ArudinoCliHelper(this);
-            } else
+            }
+            else
             {
                 Status += "This platform is not supported by this installer at this time";
             }
@@ -256,10 +270,10 @@ namespace BaseStationInstaller.ViewModels
         //                localbranch = repo.CreateBranch(SelectedBranch, branch.Tip);
         //            }
         //            Commands.Checkout(repo, localbranch);
-                    
-                    
+
+
         //        }
-                
+
         //    }
         //}
 
@@ -290,9 +304,9 @@ namespace BaseStationInstaller.ViewModels
         public bool RefreshingPorts
         {
             get => _refreshingPorts;
-           
+
             set => this.RaiseAndSetIfChanged(ref _refreshingPorts, value);
-          
+
         }
 
         private bool _busy;
@@ -315,7 +329,7 @@ namespace BaseStationInstaller.ViewModels
         #endregion
 
         #region Commands
-       
+
 
         public ReactiveCommand<Unit, Unit> RefreshComPortButton
         {
@@ -328,7 +342,7 @@ namespace BaseStationInstaller.ViewModels
             task.Start();
         }
 
-       
+
         void CompileandUploadCommand()
         {
 
@@ -404,10 +418,10 @@ namespace BaseStationInstaller.ViewModels
                 }
             }
             Status += $"Gitting {SelectedConfig.DisplayName}" + Environment.NewLine;
-            await GitCode(SelectedConfig.Git, $@".\{SelectedConfig.Name}");
+            await GitCode(SelectedConfig.Git, $@"{SelectedConfig.Name}");
         }
 
-      
+
 
 
         private void CompileSketch()
@@ -415,7 +429,7 @@ namespace BaseStationInstaller.ViewModels
             Busy = true;
             Status += "Changing MotorShield options" + Environment.NewLine;
             Progress = 5;
-            string[] config = File.ReadAllLines($@".\{SelectedConfig.Name}\{SelectedConfig.ConfigFile}");
+            string[] config = File.ReadAllLines($@"{SelectedConfig.Name}/{SelectedConfig.ConfigFile}");
             Progress = 10;
             switch (SelectedConfig.Name)
             {
@@ -443,18 +457,17 @@ namespace BaseStationInstaller.ViewModels
 
             }
             Progress = 15;
-            File.WriteAllLines($@".\{SelectedConfig.Name}\{SelectedConfig.ConfigFile}", config);
+            File.WriteAllLines($@"{SelectedConfig.Name}/{SelectedConfig.ConfigFile}", config);
             Progress = 20;
             Thread.Sleep(1000);
             Status += $"Compiling {SelectedConfig.DisplayName} Sketch" + Environment.NewLine;
-            Status += $"And uploading to {SelectedComPort}" + Environment.NewLine;
             helper.ArduinoComplieSketch(SelectedBoard.FQBN, $@"{SelectedConfig.Name}/{SelectedConfig.InputFileLocation}", SelectedComPort);
 
             RefreshingPorts = true;
             Thread.Sleep(1000);
             //Status += $"Uploading to {SelectedComPort}" + Environment.NewLine;
-           //Progress = 75;
-           // helper.UploadSketch(SelectedBoard.FQBN, SelectedComPort, Path.GetFileName(SelectedConfig.InputFileLocation));
+            Progress = 75;
+            //helper.UploadSketch(SelectedBoard.FQBN, SelectedComPort, Path.GetFileName(SelectedConfig.InputFileLocation));
             Progress = 100;
             Thread.Sleep(1000);
             Progress = 0;
@@ -468,22 +481,22 @@ namespace BaseStationInstaller.ViewModels
             CloneOptions options = new CloneOptions();
             options.RepositoryOperationCompleted = new LibGit2Sharp.Handlers.RepositoryOperationCompleted(GotCode);
             Progress = 0;
-            if (!Directory.Exists($"./{location}"))
+            if (!Directory.Exists($"{location}"))
             {
-                Repository.Clone(url, $"./{location}", options);
+                Repository.Clone(url, $"{location}", options);
             }
             else
             {
-                if (!Repository.IsValid($"./{location}"))
+                if (!Repository.IsValid($"{location}"))
                 {
-                    Directory.Delete($"./{location}", true);
-                    Repository.Clone(url, $"./{location}", options);
+                    Directory.Delete($"{location}", true);
+                    Repository.Clone(url, $"{location}", options);
                 }
                 else
                 {
-                    using (Repository repo = new Repository($"./{location}"))
+                    using (Repository repo = new Repository($"{location}"))
                     {
-                        
+
                         Stash stash;
                         RepositoryStatus status = repo.RetrieveStatus();
                         if (status.IsDirty)

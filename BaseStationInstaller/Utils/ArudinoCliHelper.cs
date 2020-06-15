@@ -75,7 +75,7 @@ namespace BaseStationInstaller.Utils
         {
             mainWindowView.Busy = true;
             ProcessStartInfo start = new ProcessStartInfo();
-            start.FileName = $@".\arduino-cli";
+            start.FileName = $@"arduino-cli";
             start.Arguments = $"compile -v -p {port} -u --fqbn {fqbn} --output-dir . ./{location}";
             start.UseShellExecute = false;
             start.WindowStyle = ProcessWindowStyle.Hidden;
@@ -98,7 +98,7 @@ namespace BaseStationInstaller.Utils
         {
             mainWindowView.Busy = true;
             ProcessStartInfo start = new ProcessStartInfo();
-            start.FileName = $@".\arduino-cli";
+            start.FileName = $@"arduino-cli";
             start.Arguments = $@"upload --fqbn {fqbn} -p {port} -i .\{file}.hex -v -t";
             start.UseShellExecute = false;
             start.WindowStyle = ProcessWindowStyle.Hidden;
@@ -118,7 +118,7 @@ namespace BaseStationInstaller.Utils
             mainWindowView.Busy = true;
             //arduino-cli board list
             ProcessStartInfo start = new ProcessStartInfo();
-            start.FileName = $@".\arduino-cli";
+            start.FileName = $@"arduino-cli";
             start.Arguments = "board list";
             start.UseShellExecute = false;
             start.WindowStyle = ProcessWindowStyle.Hidden;
@@ -137,7 +137,7 @@ namespace BaseStationInstaller.Utils
         {
             mainWindowView.Busy = true;
             ProcessStartInfo start = new ProcessStartInfo();
-            start.FileName = $@".\arduino-cli";
+            start.FileName = $@"arduino-cli";
             start.Arguments = $"lib install \"{name}\"";
             start.UseShellExecute = false;
             start.WindowStyle = ProcessWindowStyle.Hidden;

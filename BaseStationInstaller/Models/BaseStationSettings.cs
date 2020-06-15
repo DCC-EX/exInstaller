@@ -44,7 +44,7 @@ namespace BaseStationInstaller.Models
                     DisplayName = "Base Station Extended",
                     Name = "BaseStationEX",
                     Git = "https://github.com/DCC-EX/BaseStation-EX.git",
-                    ConfigFile = @"DCCpp_EX/DCCppEX/Config.h",
+                    ConfigFile = $@"DCCpp_EX/DCCppEX/Config.h",
                     InputFileLocation = "DCCpp_EX/DCCppEX/DCCppEX.ino",
                    Libraries = new List<Library>(),
                    AllowAdvanced = true,
