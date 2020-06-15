@@ -13,5 +13,6 @@ namespace BaseStationInstaller.ViewModels
         public int Progress { get; set; }
 
         public Board SelectedBoard { get; }
+        public bool Busy { get; set; }
     }
 }

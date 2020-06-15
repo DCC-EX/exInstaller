@@ -10,6 +10,7 @@ using System.IO.Ports;
 using System.Linq;
 using System.Net;
 using System.Reactive;
+using System.Reactive.Linq;
 using System.Runtime.InteropServices;
 using System.Runtime.InteropServices.ComTypes;
 using System.Text;
@@ -26,8 +27,6 @@ namespace BaseStationInstaller.ViewModels
         public MainWindowViewModel()
         {
             //WiringDiagram = "pack://application:,,,/Resources/dcc-ex-logo.png";
-            
-            SelectedConfig = BaseStationSettings.BaseStationDefaults[0];
             Task task = new Task(RefreshComports);
             task.Start();
 
@@ -47,10 +46,16 @@ namespace BaseStationInstaller.ViewModels
             task = new Task(InitArduinoCLI);
             task.Start();
             RefreshComPortButton = ReactiveCommand.Create(RefreshComPortsCommand);
-            CompileUpload = ReactiveCommand.Create(CompileandUploadCommand);
+            CompileUpload = ReactiveCommand.Create(CompileandUploadCommand, this.WhenAnyValue(x => x.Busy, (busy) =>
+            {
+                return !busy;
+            }));
+            SelectedConfig = BaseStationSettings.BaseStationDefaults[0];
             this.WhenAnyValue(x => x.SelectedConfig).Subscribe(ProcessConfigChange);
-            
+            SelectedConfig = BaseStationSettings.BaseStationDefaults[0];
         }
+
+        
 
         private void ProcessConfigChange(Config cfg)
         {
@@ -61,6 +66,7 @@ namespace BaseStationInstaller.ViewModels
 
         void InitArduinoCLI()
         {
+            Busy = true;
             string cliRuntime = "";
             string destRuntime = "";
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
@@ -404,6 +410,7 @@ namespace BaseStationInstaller.ViewModels
 
         private void CompileSketch()
         {
+            Busy = true;
             Status += "Changing MotorShield options" + Environment.NewLine;
             Progress = 5;
             string[] config = File.ReadAllLines($@".\{SelectedConfig.Name}\{SelectedConfig.ConfigFile}");
@@ -454,7 +461,7 @@ namespace BaseStationInstaller.ViewModels
 
         private async Task GitCode(string url, string location)
         {
-            
+            Busy = true;
             CloneOptions options = new CloneOptions();
             options.RepositoryOperationCompleted = new LibGit2Sharp.Handlers.RepositoryOperationCompleted(GotCode);
             Progress = 0;
@@ -511,7 +518,7 @@ namespace BaseStationInstaller.ViewModels
             //    Branches = new ObservableCollection<string>();
             //    using (Repository repo = new Repository($"./{location}"))
             //    {
-                    
+
             //        foreach (Branch b in repo.Branches)
             //        {
             //            Console.WriteLine($"adding branch {b.FriendlyName}");
@@ -522,7 +529,7 @@ namespace BaseStationInstaller.ViewModels
             //        }
             //    }
             //}
-
+            Busy = false;
         }
 
         private void GotCode(RepositoryOperationContext context)

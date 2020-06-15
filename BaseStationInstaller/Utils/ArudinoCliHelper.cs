@@ -1,4 +1,5 @@
 ﻿using BaseStationInstaller.ViewModels;
+using ReactiveUI;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -13,6 +14,7 @@ namespace BaseStationInstaller.Utils
         public ArudinoCliHelper(IMainWindowViewModel mWindow)
         {
             mainWindowView = mWindow;
+            mainWindowView.Busy = true;
             ProcessStartInfo start = new ProcessStartInfo();
             start.FileName = $@"arduino-cli";
             start.Arguments = "core update-index";
@@ -61,6 +63,7 @@ namespace BaseStationInstaller.Utils
             process.Start();
             mainWindowView.Status += process.StandardOutput.ReadToEnd();
             process.WaitForExit();
+            mainWindowView.Busy = false;
         }
 
         /// <summary>
@@ -70,6 +73,7 @@ namespace BaseStationInstaller.Utils
         /// <param name="location">Location of ino/cpp file</param>
         public void ArduinoComplieSketch(string fqbn, string location)
         {
+            mainWindowView.Busy = true;
             ProcessStartInfo start = new ProcessStartInfo();
             start.FileName = $@".\arduino-cli";
             start.Arguments = $"compile --fqbn {fqbn} ./{location} -o basestation.hex";
@@ -83,6 +87,7 @@ namespace BaseStationInstaller.Utils
             process.Start();
             mainWindowView.Status += process.StandardOutput.ReadToEnd();
             process.WaitForExit();
+            mainWindowView.Busy = false;
         }
         /// <summary>
         /// Attempt to compile and upload Arudino Sketch
@@ -91,6 +96,7 @@ namespace BaseStationInstaller.Utils
         /// <param name="location">Location of ino/cpp file</param>
         public void UploadSketch(string fqbn, string port)
         {
+            mainWindowView.Busy = true;
             ProcessStartInfo start = new ProcessStartInfo();
             start.FileName = $@".\arduino-cli";
             start.Arguments = $@"upload --fqbn {fqbn} -p {port} -i basestation.hex -v -t";
@@ -104,10 +110,12 @@ namespace BaseStationInstaller.Utils
             process.Start();
             mainWindowView.Status += process.StandardOutput.ReadToEnd();
             process.WaitForExit();
+            mainWindowView.Busy = false;
         }
 
         public void DetectBoard()
         {
+            mainWindowView.Busy = true;
             //arduino-cli board list
             ProcessStartInfo start = new ProcessStartInfo();
             start.FileName = $@".\arduino-cli";
@@ -122,10 +130,12 @@ namespace BaseStationInstaller.Utils
             process.Start();
             mainWindowView.Status += process.StandardOutput.ReadToEnd();
             process.WaitForExit();
+            mainWindowView.Busy = false;
         }
 
         public void GetLibrary(string name)
         {
+            mainWindowView.Busy = true;
             ProcessStartInfo start = new ProcessStartInfo();
             start.FileName = $@".\arduino-cli";
             start.Arguments = $"lib install \"{name}\"";
@@ -139,6 +149,7 @@ namespace BaseStationInstaller.Utils
             process.Start();
             mainWindowView.Status += process.StandardOutput.ReadToEnd();
             process.WaitForExit();
+            mainWindowView.Busy = false;
         }
 
         private void Process_OutputDataReceived(object sender, DataReceivedEventArgs e)
