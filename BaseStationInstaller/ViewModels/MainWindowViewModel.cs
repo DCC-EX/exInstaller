@@ -46,10 +46,12 @@ namespace BaseStationInstaller.ViewModels
             task = new Task(InitArduinoCLI);
             task.Start();
             RefreshComPortButton = ReactiveCommand.Create(RefreshComPortsCommand);
-            CompileUpload = ReactiveCommand.Create(CompileandUploadCommand, this.WhenAnyValue(x => x.Busy, (busy) =>
-            {
-                return !busy;
-            }));
+            IObservable<bool> canExecuteCompile = this.WhenAnyValue(x => x.Busy,
+                x => x.SelectedBoard.Name, x => x.SelectedMotorShield.Name, 
+                (busy, board, shield) =>
+                !busy && !String.IsNullOrEmpty(board) && !String.IsNullOrEmpty(shield)
+                ).ObserveOn(RxApp.MainThreadScheduler);
+            CompileUpload = ReactiveCommand.Create(CompileandUploadCommand, canExecuteCompile);
             SelectedConfig = BaseStationSettings.BaseStationDefaults[0];
             this.WhenAnyValue(x => x.SelectedConfig).Subscribe(ProcessConfigChange);
             SelectedConfig = BaseStationSettings.BaseStationDefaults[0];
@@ -445,13 +447,14 @@ namespace BaseStationInstaller.ViewModels
             Progress = 20;
             Thread.Sleep(1000);
             Status += $"Compiling {SelectedConfig.DisplayName} Sketch" + Environment.NewLine;
-            helper.ArduinoComplieSketch(SelectedBoard.FQBN, $@"{SelectedConfig.Name}/{SelectedConfig.InputFileLocation}");
+            Status += $"And uploading to {SelectedComPort}" + Environment.NewLine;
+            helper.ArduinoComplieSketch(SelectedBoard.FQBN, $@"{SelectedConfig.Name}/{SelectedConfig.InputFileLocation}", SelectedComPort);
 
             RefreshingPorts = true;
             Thread.Sleep(1000);
-            Status += $"Uploading to {SelectedComPort}" + Environment.NewLine;
-            Progress = 75;
-            helper.UploadSketch(SelectedBoard.FQBN, SelectedComPort);
+            //Status += $"Uploading to {SelectedComPort}" + Environment.NewLine;
+           //Progress = 75;
+           // helper.UploadSketch(SelectedBoard.FQBN, SelectedComPort, Path.GetFileName(SelectedConfig.InputFileLocation));
             Progress = 100;
             Thread.Sleep(1000);
             Progress = 0;

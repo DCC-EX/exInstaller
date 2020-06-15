@@ -71,12 +71,12 @@ namespace BaseStationInstaller.Utils
         /// </summary>
         /// <param name="fqbn">Fully qualified board name for Arduino Board</param>
         /// <param name="location">Location of ino/cpp file</param>
-        public void ArduinoComplieSketch(string fqbn, string location)
+        public void ArduinoComplieSketch(string fqbn, string location,string port)
         {
             mainWindowView.Busy = true;
             ProcessStartInfo start = new ProcessStartInfo();
             start.FileName = $@".\arduino-cli";
-            start.Arguments = $"compile --fqbn {fqbn} ./{location} -o basestation.hex";
+            start.Arguments = $"compile -v -p {port} -u --fqbn {fqbn} --output-dir . ./{location}";
             start.UseShellExecute = false;
             start.WindowStyle = ProcessWindowStyle.Hidden;
             start.RedirectStandardOutput = true;
@@ -94,12 +94,12 @@ namespace BaseStationInstaller.Utils
         /// </summary>
         /// <param name="fqbn">Fully qualified board name for Arduino Board</param>
         /// <param name="location">Location of ino/cpp file</param>
-        public void UploadSketch(string fqbn, string port)
+        public void UploadSketch(string fqbn, string port, string file)
         {
             mainWindowView.Busy = true;
             ProcessStartInfo start = new ProcessStartInfo();
             start.FileName = $@".\arduino-cli";
-            start.Arguments = $@"upload --fqbn {fqbn} -p {port} -i basestation.hex -v -t";
+            start.Arguments = $@"upload --fqbn {fqbn} -p {port} -i .\{file}.hex -v -t";
             start.UseShellExecute = false;
             start.WindowStyle = ProcessWindowStyle.Hidden;
             start.RedirectStandardOutput = true;
