@@ -24,8 +24,8 @@ jobs:
               run: dotnet build --configuration Release --no-restore --runtime win-x64
             - name: Build Mac OSX x64
               run: dotnet build --configuration Release --no-restore --runtime osx-x64
-            - name: Build Linux x86
-              run: dotnet build --configuration Release --no-restore --runtime linux-x86
+            #- name: Build Linux x86
+            #  run: dotnet build --configuration Release --no-restore --runtime linux-x86
             - name: Build Linux x64
               run: dotnet build --configuration Release --no-restore --runtime linux-x64
             - name: Build Linux ARM
