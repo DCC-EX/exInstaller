@@ -1,0 +1,58 @@
+﻿<Window xmlns="https://github.com/avaloniaui"  xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"         xmlns:vm="clr-namespace:BaseStationInstaller.ViewModels;assembly=BaseStationInstaller"         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"         mc:Ignorable="d" x:Class="BaseStationInstaller.Views.MainWindow"         Icon="/Assets/avalonia-logo.ico"         Title="BaseStationInstaller"         Height="450"         Width="900">
+
+  <Design.DataContext>
+    <vm:MainWindowViewModel />
+  </Design.DataContext>
+  <Grid>
+    <DockPanel>
+      <DockPanel DockPanel.Dock="Bottom">
+        <ProgressBar Height="25" Margin="5,0,5,0" Value="{Binding Progress}" VerticalAlignment="Center"  DockPanel.Dock="Right" Width="750"></ProgressBar>
+      </DockPanel>
+      <Grid DockPanel.Dock="Top" Margin="15,15,15,0">
+        <Grid.ColumnDefinitions>
+          <ColumnDefinition Width="250"></ColumnDefinition>
+          <ColumnDefinition Width="500"></ColumnDefinition>
+        </Grid.ColumnDefinitions>
+        <StackPanel>
+          <TextBlock Margin="5">Select Base Station Type</TextBlock>
+          <ComboBox Margin="5" Items="{Binding BaseStations}" SelectedItem="{Binding SelectedConfig}">
+            <ComboBox.ItemTemplate>
+              <DataTemplate>
+                <TextBlock Text="{Binding DisplayName}"  />
+              </DataTemplate>
+            </ComboBox.ItemTemplate>
+          </ComboBox>
+          <!--<TextBlock Margin="5" Style="{DynamicResource MaterialDesignSubtitle2TextBlock}">Select Repo Branch</TextBlock>
+                        <ComboBox Margin="5" Style="{DynamicResource MaterialDesignComboBox}" Items="{Binding Branches}" SelectedItem="{Binding SelectedBranch}"></ComboBox>-->
+          <TextBlock Margin="5">Select Board Type</TextBlock>
+          <ComboBox Margin="5" Items="{Binding SelectedSupportedBoards}" SelectedItem="{Binding SelectedBoard}">
+            <ComboBox.ItemTemplate>
+              <DataTemplate>
+                <TextBlock Text="{Binding Name}"  />
+              </DataTemplate>
+            </ComboBox.ItemTemplate>
+          </ComboBox>
+          <TextBlock Margin="5">Select Motor Shield</TextBlock>
+          <ComboBox Margin="5" Items="{Binding SelectedSupportedMotorShields}" SelectedItem="{Binding SelectedMotorShield}">
+            <ComboBox.ItemTemplate>
+              <DataTemplate>
+                <TextBlock Text="{Binding Name}"  />
+              </DataTemplate>
+            </ComboBox.ItemTemplate>
+          </ComboBox>
+          <TextBlock Margin="5">Select COM Port</TextBlock>
+          <ComboBox Margin="5" Items="{Binding AvailableComPorts}" SelectedItem="{Binding SelectedComPort}">
+          </ComboBox>
+          <Button Margin="5" Command="{Binding RefreshComPortButton}" Content="Refresh Ports"></Button>
+          <Button Margin="5" Command="{Binding CompileUpload}">Compile and Upload</Button>
+        </StackPanel>
+        <TextBox Grid.Column="1" Text="{Binding Status}" TextWrapping="Wrap"  IsReadOnly="True" Margin="0" />
+        <!--<Image  Source="{Binding WiringDiagram}"></Image>-->
+      </Grid>
+
+    </DockPanel>
+
+  </Grid>
+
+
+</Window>
