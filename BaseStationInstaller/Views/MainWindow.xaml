@@ -1,4 +1,4 @@
-﻿<Window xmlns="https://github.com/avaloniaui"  xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"         xmlns:vm="clr-namespace:BaseStationInstaller.ViewModels;assembly=BaseStationInstaller"         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"         mc:Ignorable="d" x:Class="BaseStationInstaller.Views.MainWindow"         Icon="/Assets/avalonia-logo.ico"         Title="BaseStationInstaller"         Height="450"         Width="900">
+﻿<Window xmlns="https://github.com/avaloniaui"  xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"         xmlns:vm="clr-namespace:BaseStationInstaller.ViewModels;assembly=BaseStationInstaller"         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"         mc:Ignorable="d" x:Class="BaseStationInstaller.Views.MainWindow"         Icon="/Assets/dccex-logo.ico"         Title="BaseStationInstaller"         Height="450"         Width="900">
 
   <Design.DataContext>
     <vm:MainWindowViewModel />
@@ -46,7 +46,7 @@
           <Button Margin="5" Command="{Binding RefreshComPortButton}" Content="Refresh Ports"></Button>
           <Button Margin="5" Command="{Binding CompileUpload}">Compile and Upload</Button>
         </StackPanel>
-        <TextBox Grid.Column="1" Text="{Binding Status}" TextWrapping="Wrap"  IsReadOnly="True" Margin="0" />
+        <TextBox Grid.Column="1" Text="{Binding Status}" TextWrapping="Wrap" CaretIndex="{Binding StatusCaret}"  IsReadOnly="True" Margin="0" />
         <!--<Image  Source="{Binding WiringDiagram}"></Image>-->
       </Grid>
 

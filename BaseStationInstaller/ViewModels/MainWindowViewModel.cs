@@ -53,9 +53,14 @@ namespace BaseStationInstaller.ViewModels
             }).ObserveOn(RxApp.MainThreadScheduler));
             SelectedConfig = BaseStationSettings.BaseStationDefaults[0];
             this.WhenAnyValue(x => x.SelectedConfig).Subscribe(ProcessConfigChange);
+            this.WhenAnyValue(x => x.Status).Subscribe(ProcessStatusChange);
             SelectedConfig = BaseStationSettings.BaseStationDefaults[0];
         }
 
+        private void ProcessStatusChange(string status)
+        {
+            StatusCaret = status.Length;
+        }
 
 
         private void ProcessConfigChange(Config cfg)
@@ -285,6 +290,14 @@ namespace BaseStationInstaller.ViewModels
             set => this.RaiseAndSetIfChanged(ref _status, value + Environment.NewLine);
         }
 
+
+        private int _statusCaret;
+        public int StatusCaret
+        {
+            get => _statusCaret;
+
+            set => this.RaiseAndSetIfChanged(ref _statusCaret, value);
+        }
         //private string _wiringDiagram;
         //public string WiringDiagram
         //{
