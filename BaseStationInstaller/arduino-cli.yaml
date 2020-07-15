@@ -3,7 +3,7 @@ board_manager:
         https://raw.githubusercontent.com/sparkfun/Arduino_Boards/master/IDE_Board_Manager/package_sparkfun_index.json
     ]
 daemon:
-    port: "50051"
+    port: "27160"
 directories:
     data: .
     downloads: .

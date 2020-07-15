@@ -144,7 +144,27 @@ namespace BaseStationInstaller.ViewModels
 
         public void Closing(object sender, System.ComponentModel.CancelEventArgs e)
         {
-            logWriter.Close();
+            try
+            {
+                if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX) || RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+                {
+                    foreach (Process proc in Process.GetProcessesByName("arduino-cli"))
+                    {
+                        proc.Kill();
+                    }
+                }
+                if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+                {
+                    foreach (Process proc in Process.GetProcessesByName("arduino-cli.exe"))
+                    {
+                        proc.Kill();
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                
+            }
         }
 
         #region Bindings
@@ -383,7 +403,7 @@ namespace BaseStationInstaller.ViewModels
             Busy = true;
             RefreshingPorts = true;
             Progress = 0;
-            Status += "Refreshing Ports..." + Environment.NewLine;
+            Status += "Refreshing Ports...";
             for (int i = 0; i < 5; i++)
             {
                 Progress += 20;
@@ -400,7 +420,7 @@ namespace BaseStationInstaller.ViewModels
             RefreshingPorts = false;
             Thread.Sleep(500);
             Progress = 0;
-            Status += "Idle" + Environment.NewLine;
+            Status += "Idle";
             Thread.Sleep(10000);
             //CommandManager.InvalidateRequerySuggested();
         }
@@ -417,7 +437,7 @@ namespace BaseStationInstaller.ViewModels
         int currDep = 0;
         private async Task DownloadPreReqs()
         {
-            Status += "Starting Dependency Downloads" + Environment.NewLine;
+            Status += "Starting Dependency Downloads";
             Thread.Sleep(500);
             foreach (Library dep in SelectedConfig.Libraries)
             {
@@ -430,7 +450,7 @@ namespace BaseStationInstaller.ViewModels
                     await GitCode(dep.Repo, dep.Location);
                 }
             }
-            Status += $"Gitting {SelectedConfig.DisplayName}" + Environment.NewLine;
+            Status += $"Gitting {SelectedConfig.DisplayName}";
             await GitCode(SelectedConfig.Git, $@"{SelectedConfig.Name}");
         }
 
@@ -440,7 +460,7 @@ namespace BaseStationInstaller.ViewModels
         private void CompileSketch()
         {
             Busy = true;
-            Status += "Changing MotorShield options" + Environment.NewLine;
+            Status += "Changing MotorShield options";
             Progress = 5;
             string[] config = File.ReadAllLines($@"{SelectedConfig.Name}/{SelectedConfig.ConfigFile}");
             Progress = 10;
@@ -448,7 +468,6 @@ namespace BaseStationInstaller.ViewModels
             {
                 case "BaseStationClassic":
                     config[16] = $"#define MOTOR_SHIELD_TYPE   {(int)SelectedMotorShield.ShieldType}";
-
                     break;
                 case "BaseStationEx":
                     config[17] = $"#define MOTOR_SHIELD_TYPE   {(int)SelectedMotorShield.ShieldType}";
@@ -457,30 +476,39 @@ namespace BaseStationInstaller.ViewModels
                     switch (SelectedMotorShield.ShieldType)
                     {
                         case MotorShieldType.Arduino:
-
+                            config[25] = "#define CONFIG_ARDUINO_MOTOR_SHIELD";
                             break;
                         case MotorShieldType.Pololu:
-                            config[14] = $"// DCC* mainTrack = DCC::Create_Arduino_L298Shield_Main(50);";
-                            config[15] = $"// DCC* progTrack = DCC::Create_Arduino_L298Shield_Prog(2);";
-                            config[17] = $"DCC* mainTrack = DCC::Create_Pololu_MC33926Shield_Main(50);";
-                            config[18] = $"DCC* progTrack = DCC::Create_Pololu_MC33926Shield_Prog(2);";
+                            config[25] = "#define CONFIG_POLOLU_MOTOR_SHIELD";
+                            break;
+                        case MotorShieldType.FireBox:
                             break;
                     }
+                    if (File.Exists($@"{SelectedConfig.Name}/{SelectedConfig.Name}.cpp"))
+                    {
+                        File.Move($@"{SelectedConfig.Name}/{SelectedConfig.Name}.cpp", $@"{SelectedConfig.Name}/{SelectedConfig.Name}.ino");
+                    }
                     break;
-
             }
+
             Progress = 15;
             File.WriteAllLines($@"{SelectedConfig.Name}/{SelectedConfig.ConfigFile}", config);
             Progress = 20;
             Thread.Sleep(1000);
-            Status += $"Compiling {SelectedConfig.DisplayName} Sketch" + Environment.NewLine;
-            helper.ArduinoComplieSketch(SelectedBoard.FQBN, $@"{SelectedConfig.Name}/{SelectedConfig.InputFileLocation}", SelectedComPort);
+            Status += $"Compiling {SelectedConfig.DisplayName} Sketch";
+            var dir = new DirectoryInfo($@"./{SelectedConfig.Name}");
+
+            foreach (var file in dir.EnumerateDirectories("_git2*"))
+            {
+                file.Delete();
+            }
+            helper.ArduinoComplieSketch(SelectedBoard.FQBN, $@"./{SelectedConfig.Name}/{SelectedConfig.InputFileLocation}", SelectedComPort);
 
             RefreshingPorts = true;
             Thread.Sleep(1000);
-            //Status += $"Uploading to {SelectedComPort}" + Environment.NewLine;
+            Status += $"Uploading to {SelectedComPort}";
             Progress = 75;
-            //helper.UploadSketch(SelectedBoard.FQBN, SelectedComPort, Path.GetFileName(SelectedConfig.InputFileLocation));
+            //helper.UploadSketch(SelectedBoard.FQBN, SelectedComPort, $@"{SelectedConfig.Name}/{SelectedConfig.InputFileLocation}");
             Progress = 100;
             Thread.Sleep(1000);
             Progress = 0;

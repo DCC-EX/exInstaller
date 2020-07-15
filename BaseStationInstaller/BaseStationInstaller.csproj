@@ -21,12 +21,46 @@
     <AvaloniaResource Include="Assets\**" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Avalonia" Version="0.9.10" />
-    <PackageReference Include="Avalonia.Desktop" Version="0.9.10" />
-    <PackageReference Include="Avalonia.ReactiveUI" Version="0.9.10" />
+    <None Remove="board.proto" />
+    <None Remove="commands.proto" />
+    <None Remove="commands\board.proto" />
+    <None Remove="commands\commands.proto" />
+    <None Remove="commands\common.proto" />
+    <None Remove="commands\compile.proto" />
+    <None Remove="commands\core.proto" />
+    <None Remove="commands\lib.proto" />
+    <None Remove="commands\upload.proto" />
+    <None Remove="common.proto" />
+    <None Remove="compile.proto" />
+    <None Remove="core.proto" />
+    <None Remove="lib.proto" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Avalonia" Version="0.9.11" />
+    <PackageReference Include="Avalonia.Desktop" Version="0.9.11" />
+    <PackageReference Include="Avalonia.ReactiveUI" Version="0.9.11" />
+    <PackageReference Include="Google.Protobuf" Version="3.12.3" />
+    <PackageReference Include="Grpc" Version="2.30.0" />
+    <PackageReference Include="Grpc.Core" Version="2.30.0" />
+    <PackageReference Include="Grpc.Core.Api" Version="2.30.0" />
+    <PackageReference Include="Grpc.Net.Client" Version="2.29.0" />
+    <PackageReference Include="Grpc.Net.Common" Version="2.29.0" />
+    <PackageReference Include="Grpc.Tools" Version="2.30.0">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
     <PackageReference Include="LibGit2Sharp" Version="0.26.2" />
     <PackageReference Include="Newtonsoft.Json" Version="12.0.3" />
     <PackageReference Include="System.IO.Ports" Version="4.7.0" />
+  </ItemGroup>
+  <ItemGroup>
+    <Protobuf Include="commands\board.proto" GrpcServices="Client" />
+    <Protobuf Include="commands\commands.proto" GrpcServices="Client" />
+    <Protobuf Include="commands\common.proto" GrpcServices="Client" />
+    <Protobuf Include="commands\compile.proto" GrpcServices="Client" />
+    <Protobuf Include="commands\core.proto" GrpcServices="Client" />
+    <Protobuf Include="commands\lib.proto" GrpcServices="Client" />
+    <Protobuf Include="commands\upload.proto" GrpcServices="Client" />
   </ItemGroup>
   <ItemGroup>
     <None Update="arduino-cli-runtimes\Linux_32bit\arduino-cli">
