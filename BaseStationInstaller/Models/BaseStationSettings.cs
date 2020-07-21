@@ -85,11 +85,11 @@ namespace BaseStationInstaller.Models
             },{
             new Config
                 {
-                    DisplayName = "CommandStation Test",
-                    Name = "CommandStation",
+                    DisplayName = "CommandStation EX",
+                    Name = "CommandStation-DCC",
                     Git = "https://github.com/DCC-EX/CommandStation-DCC.git",
                     ConfigFile = @"Config.h",
-                    InputFileLocation =  @".",
+                    InputFileLocation =  @"",
                     AllowAdvanced = true,
                     Libraries = new List<Library>()
                     {
@@ -109,7 +109,8 @@ namespace BaseStationInstaller.Models
                     {
                         new MotorShield("Arduino Motor Shield", MotorShieldType.Arduino),
                         new MotorShield("Pololu MC33926 Motor Shield", MotorShieldType.Pololu),
-                        new MotorShield("FireBox", MotorShieldType.FireBox),
+                        new MotorShield("FireBox MK1", MotorShieldType.FireBox_MK1),
+                        new MotorShield("FireBox MK1S", MotorShieldType.FireBox_MK1S),
                         //new MotorShield("BTS7960B Motor Shield", MotorShieldType.BTS7960B),
                     }
                 }

@@ -17,6 +17,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Diagnostics;
+using Grpc.Core;
 
 namespace BaseStationInstaller.ViewModels
 {
@@ -68,6 +69,8 @@ namespace BaseStationInstaller.ViewModels
             SelectedSupportedBoards = new ObservableCollection<Board>(SelectedConfig.SupportedBoards);
             SelectedSupportedMotorShields = new ObservableCollection<MotorShield>(SelectedConfig.SupportedMotorShields);
             GitCode(SelectedConfig.Git, $@"{SelectedConfig.Name}");
+            Task detect = new Task(helper.DetectBoard);
+            detect.Start();
         }
 
         void InitArduinoCLI()
@@ -450,20 +453,18 @@ namespace BaseStationInstaller.ViewModels
                     await GitCode(dep.Repo, dep.Location);
                 }
             }
-            Status += $"Gitting {SelectedConfig.DisplayName}";
-            await GitCode(SelectedConfig.Git, $@"{SelectedConfig.Name}");
         }
 
 
 
 
-        private void CompileSketch()
+        private async void CompileSketch()
         {
             Busy = true;
             Status += "Changing MotorShield options";
-            Progress = 5;
+            Progress = 25;
             string[] config = File.ReadAllLines($@"{SelectedConfig.Name}/{SelectedConfig.ConfigFile}");
-            Progress = 10;
+            Progress = 30;
             switch (SelectedConfig.Name)
             {
                 case "BaseStationClassic":
@@ -472,7 +473,7 @@ namespace BaseStationInstaller.ViewModels
                 case "BaseStationEx":
                     config[17] = $"#define MOTOR_SHIELD_TYPE   {(int)SelectedMotorShield.ShieldType}";
                     break;
-                case "CommandStation":
+                case "CommandStation-DCC":
                     switch (SelectedMotorShield.ShieldType)
                     {
                         case MotorShieldType.Arduino:
@@ -481,36 +482,37 @@ namespace BaseStationInstaller.ViewModels
                         case MotorShieldType.Pololu:
                             config[25] = "#define CONFIG_POLOLU_MOTOR_SHIELD";
                             break;
-                        case MotorShieldType.FireBox:
+                        case MotorShieldType.FireBox_MK1:
+                            config[25] = "#define CONFIG_WSM_FIREBOX_MK1";
                             break;
-                    }
-                    if (File.Exists($@"{SelectedConfig.Name}/{SelectedConfig.Name}.cpp"))
-                    {
-                        File.Move($@"{SelectedConfig.Name}/{SelectedConfig.Name}.cpp", $@"{SelectedConfig.Name}/{SelectedConfig.Name}.ino");
+                        case MotorShieldType.FireBox_MK1S:
+                            config[25] = "#define CONFIG_WSM_FIREBOX_MK1S";
+                            break;
                     }
                     break;
             }
 
-            Progress = 15;
+            Progress = 75;
             File.WriteAllLines($@"{SelectedConfig.Name}/{SelectedConfig.ConfigFile}", config);
-            Progress = 20;
+            Progress = 100;
             Thread.Sleep(1000);
             Status += $"Compiling {SelectedConfig.DisplayName} Sketch";
+            Progress = 0;
             var dir = new DirectoryInfo($@"./{SelectedConfig.Name}");
-
+            dir.CreateSubdirectory("./build");
             foreach (var file in dir.EnumerateDirectories("_git2*"))
             {
                 file.Delete();
             }
-            helper.ArduinoComplieSketch(SelectedBoard.FQBN, $@"./{SelectedConfig.Name}/{SelectedConfig.InputFileLocation}", SelectedComPort);
-
-            RefreshingPorts = true;
-            Thread.Sleep(1000);
-            Status += $"Uploading to {SelectedComPort}";
-            Progress = 75;
-            //helper.UploadSketch(SelectedBoard.FQBN, SelectedComPort, $@"{SelectedConfig.Name}/{SelectedConfig.InputFileLocation}");
+            helper.ArduinoComplieSketch(SelectedBoard.FQBN, $@"./{SelectedConfig.Name}/{SelectedConfig.InputFileLocation}");
             Progress = 100;
-            Thread.Sleep(1000);
+            RefreshingPorts = true;
+            Thread.Sleep(5000);
+            Status += $"Uploading to {SelectedComPort}";
+            Progress = 0;
+            helper.UploadSketch(SelectedBoard.FQBN, SelectedComPort, $@"{SelectedConfig.Name}/{SelectedConfig.InputFileLocation}");
+            Progress = 100;
+            Thread.Sleep(5000);
             Progress = 0;
             Busy = false;
             RefreshingPorts = false;
@@ -519,6 +521,7 @@ namespace BaseStationInstaller.ViewModels
         private async Task GitCode(string url, string location)
         {
             Busy = true;
+            Status += $"Obtaining {url} via git";
             CloneOptions options = new CloneOptions();
             options.RepositoryOperationCompleted = new LibGit2Sharp.Handlers.RepositoryOperationCompleted(GotCode);
             Progress = 0;
@@ -553,16 +556,16 @@ namespace BaseStationInstaller.ViewModels
                             switch (stashApply)
                             {
                                 case StashApplyStatus.Applied:
-                                    Status += $"Successfully applied Stashed changes in {location}{Environment.NewLine}";
+                                    Status += $"Successfully applied Stashed changes in {location}";
                                     break;
                                 case StashApplyStatus.Conflicts:
-                                    Status += $"Reverted to Default Checkout on {location} since changes conflict with upstream{Environment.NewLine}";
+                                    Status += $"Reverted to Default Checkout on {location} since changes conflict with upstream";
                                     break;
                                 case StashApplyStatus.NotFound:
-                                    Status += $"Stash not found for {location}{Environment.NewLine}";
+                                    Status += $"Stash not found for {location}";
                                     break;
                                 case StashApplyStatus.UncommittedChanges:
-                                    Status += $"There are uncommited changes in {location}{Environment.NewLine}";
+                                    Status += $"There are uncommited changes in {location}";
                                     break;
                             }
                         }

@@ -11,7 +11,8 @@ namespace BaseStationInstaller.Models
         Arduino,
         Pololu,
         BTS7960B,
-        FireBox
+        FireBox_MK1,
+        FireBox_MK1S
     }
     public class MotorShield
     {

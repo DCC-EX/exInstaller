@@ -7,6 +7,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -27,67 +28,12 @@ namespace BaseStationInstaller.Utils
             ProcessStartInfo start = new ProcessStartInfo();
             AppContext.SetSwitch("System.Net.Http.SocketsHttpHandler.Http2UnencryptedSupport", true);
             start.FileName = $@"arduino-cli";
-            start.Arguments = "core update-index";
             start.UseShellExecute = false;
             start.WindowStyle = ProcessWindowStyle.Hidden;
             start.CreateNoWindow = true;
             start.RedirectStandardOutput = true;
             start.RedirectStandardError = true;
             Process process = new Process();
-            //process.OutputDataReceived += Process_OutputDataReceived;
-            //process.ErrorDataReceived += Process_OutputDataReceived;
-            //process.StartInfo = start;
-            //process.Start();
-            //process.BeginOutputReadLine();
-            //process.BeginErrorReadLine();
-            //process.WaitForExit();
-            //process = new Process();
-            //start.Arguments = "core install arduino:avr";
-            //process.OutputDataReceived += Process_OutputDataReceived;
-            //process.ErrorDataReceived += Process_OutputDataReceived;
-            //process.StartInfo = start;
-            //process.Start();
-            //process.BeginOutputReadLine();
-            //process.BeginErrorReadLine();
-            //process.WaitForExit();
-            //process = new Process();
-            //start.Arguments = "core install arduino:mega";
-            //process.OutputDataReceived += Process_OutputDataReceived;
-            //process.ErrorDataReceived += Process_OutputDataReceived;
-            //process.StartInfo = start;
-            //process.Start();
-            //process.BeginOutputReadLine();
-            //process.BeginErrorReadLine();
-            //process.WaitForExit();
-            //process = new Process();
-            //start.Arguments = "core install arduino:samd";
-            //process.OutputDataReceived += Process_OutputDataReceived;
-            //process.ErrorDataReceived += Process_OutputDataReceived;
-            //process.StartInfo = start;
-            //process.Start();
-            //process.BeginOutputReadLine();
-            //process.BeginErrorReadLine();
-            //process.WaitForExit();
-            //process = new Process();
-            //start.Arguments = "core install arduino:uno";
-            //process.OutputDataReceived += Process_OutputDataReceived;
-            //process.ErrorDataReceived += Process_OutputDataReceived;
-            //process.StartInfo = start;
-            //process.Start();
-            //process.BeginOutputReadLine();
-            //process.BeginErrorReadLine();
-            //process.WaitForExit();
-            //process = new Process();
-            //start.Arguments = "core install SparkFun:samd";
-            //process.OutputDataReceived += Process_OutputDataReceived;
-            //process.ErrorDataReceived += Process_OutputDataReceived; ;
-            //process.StartInfo = start;
-            //process.Start();
-            //process.BeginOutputReadLine();
-            //process.BeginErrorReadLine();
-            //process.WaitForExit();
-            //mainWindowView.Busy = false;
-            process = new Process();
             start.Arguments = "daemon";
             start.RedirectStandardOutput = false;
             start.RedirectStandardError = false;
@@ -95,7 +41,7 @@ namespace BaseStationInstaller.Utils
             process.Start();
             Task task = new Task(Init);
             task.Start();
-            
+
         }
 
 
@@ -106,7 +52,7 @@ namespace BaseStationInstaller.Utils
             channel = GrpcChannel.ForAddress("http://127.0.0.1:27160", new GrpcChannelOptions { Credentials = ChannelCredentials.Insecure });
             client = new ArduinoCore.ArduinoCoreClient(channel);
             AsyncServerStreamingCall<InitResp> init = client.Init(new InitReq());
-            
+
             while (await init.ResponseStream.MoveNext())
             {
                 InitResp resp = init.ResponseStream.Current;
@@ -119,7 +65,8 @@ namespace BaseStationInstaller.Utils
                 UpdateIndexResp resp = update.ResponseStream.Current;
                 if (resp.DownloadProgress != null)
                 {
-                    if (!String.IsNullOrEmpty(resp.DownloadProgress.File)) {
+                    if (!String.IsNullOrEmpty(resp.DownloadProgress.File))
+                    {
                         currentFile = resp.DownloadProgress.File;
                         totalSize = resp.DownloadProgress.TotalSize;
                     }
@@ -131,8 +78,8 @@ namespace BaseStationInstaller.Utils
                     {
                         mainWindowView.Status += $"{currentFile} download complete";
                     }
-                } 
-                
+                }
+
             }
 
             AsyncServerStreamingCall<PlatformInstallResp> avr = client.PlatformInstall(new PlatformInstallReq { Instance = instance, Architecture = "avr", PlatformPackage = "arduino" });
@@ -146,16 +93,6 @@ namespace BaseStationInstaller.Utils
             {
                 SendProgress(mega.ResponseStream.Current);
             }
-
-            //AsyncServerStreamingCall<PlatformInstallResp> uno = client.PlatformInstall(new PlatformInstallReq { Instance = instance, Architecture = "uno", PlatformPackage = "arduino" });
-            //while (await uno.ResponseStream.MoveNext())
-            //{
-            //    PlatformInstallResp resp = uno.ResponseStream.Current;
-            //    if (resp.Progress != null)
-            //    {
-            //        mainWindowView.Status += $"Downloading {resp.Progress.File}: {resp.Progress.Downloaded}/{resp.Progress.TotalSize}";
-            //    }
-            //}
 
             AsyncServerStreamingCall<PlatformInstallResp> samd = client.PlatformInstall(new PlatformInstallReq { Instance = instance, Architecture = "samd", PlatformPackage = "arduino" });
             while (await samd.ResponseStream.MoveNext())
@@ -174,7 +111,7 @@ namespace BaseStationInstaller.Utils
         }
 
 
-        
+
         private void SendProgress(PlatformInstallResp resp)
         {
             if (resp.Progress != null)
@@ -188,11 +125,11 @@ namespace BaseStationInstaller.Utils
                 {
                     mainWindowView.Status += $"Downloading {currentFile}: {resp.Progress.Downloaded}/{totalSize}";
                     mainWindowView.Progress = (int)(resp.Progress.Downloaded / totalSize);
-                } 
+                }
                 else
                 {
                     mainWindowView.Status += $"{currentFile} download complete";
-                } 
+                }
             }
         }
 
@@ -201,25 +138,26 @@ namespace BaseStationInstaller.Utils
         /// </summary>
         /// <param name="fqbn">Fully qualified board name for Arduino Board</param>
         /// <param name="location">Location of ino/cpp file</param>
-        public void ArduinoComplieSketch(string fqbn, string location, string port)
+        public async void ArduinoComplieSketch(string fqbn, string location)
         {
             mainWindowView.Busy = true;
-            ProcessStartInfo start = new ProcessStartInfo();
-            start.FileName = $@"arduino-cli";
-            start.Arguments = $"compile -v --fqbn {fqbn} ./{location} -u -p {port} -t";
-            start.UseShellExecute = false;
-            start.WindowStyle = ProcessWindowStyle.Hidden;
-            start.RedirectStandardOutput = true;
-            start.RedirectStandardError = true;
-            start.CreateNoWindow = true;
-            Process process = new Process();
-            process.OutputDataReceived += Process_OutputDataReceived;
-            process.ErrorDataReceived += Process_OutputDataReceived;
-            process.StartInfo = start;
-            process.Start();
-            process.BeginOutputReadLine();
-            process.BeginErrorReadLine();
-            process.WaitForExit();
+            AsyncServerStreamingCall<CompileResp> compile = client.Compile(new CompileReq { Instance = instance, Fqbn = fqbn, Verbose = true, SketchPath = $"./{location}" });
+            try
+            {
+                while (await compile.ResponseStream.MoveNext())
+                {
+                    mainWindowView.Status += compile.ResponseStream.Current.OutStream.ToStringUtf8();
+                    mainWindowView.Progress++;
+                    if (compile.ResponseStream.Current.ErrStream.Length >= 1)
+                    {
+                        mainWindowView.Status += $"ERROR: {compile.ResponseStream.Current.ErrStream.ToStringUtf8()}";
+                    }
+                }
+            }
+            catch (RpcException e)
+            {
+                mainWindowView.Status += $"Failed to compile sketch in {location} got error {e.Status.Detail}";
+            }
             mainWindowView.Busy = false;
         }
         /// <summary>
@@ -227,62 +165,82 @@ namespace BaseStationInstaller.Utils
         /// </summary>
         /// <param name="fqbn">Fully qualified board name for Arduino Board</param>
         /// <param name="location">Location of ino/cpp file</param>
-        public void UploadSketch(string fqbn, string port, string file)
+        public async void UploadSketch(string fqbn, string port, string location)
         {
             mainWindowView.Busy = true;
-            ProcessStartInfo start = new ProcessStartInfo();
-            start.FileName = $@"arduino-cli";
-            start.Arguments = $@"upload --fqbn {fqbn} -p {port} --input-dir ./{file}/build -v -t";
-            start.UseShellExecute = false;
-            start.WindowStyle = ProcessWindowStyle.Hidden;
-            start.RedirectStandardOutput = true;
-            start.RedirectStandardError = true;
-            start.CreateNoWindow = true;
-            Process process = new Process();
-            process.OutputDataReceived += Process_OutputDataReceived;
-            process.ErrorDataReceived += Process_OutputDataReceived;
-            process.StartInfo = start;
-            process.Start();
-            process.BeginOutputReadLine();
-            process.BeginErrorReadLine();
-            process.WaitForExit();
+            AsyncServerStreamingCall<UploadResp> upload = client.Upload(new UploadReq { Instance = instance, Fqbn = fqbn, Port = port, SketchPath = location, Verbose = true, Verify = true });
+            try
+            {
+                StringBuilder sb = new StringBuilder();
+                Stopwatch time = new Stopwatch();
+                time.Start();
+                while (await upload.ResponseStream.MoveNext())
+                {
+                    mainWindowView.Status += $"Uploading elasped time {time.ElapsedMilliseconds / 1000} secs";
+                    mainWindowView.Progress++;
+                    sb.Append($"{upload.ResponseStream.Current.ErrStream.ToStringUtf8()}");
+                }
+                time.Stop();
+                mainWindowView.Status += sb.ToString();
+                mainWindowView.Status += $"Uploaded and Verified to {port} in {time.ElapsedMilliseconds / 1000} secs";
+            }
+            catch (RpcException e)
+            {
+                mainWindowView.Status += $"Failed to upload because {e.Status.Detail}";
+            }
             mainWindowView.Busy = false;
         }
 
+        /// <summary>
+        /// Detect attached boards and select it.
+        /// </summary>
         public async void DetectBoard()
         {
-            
+
             mainWindowView.Busy = true;
             BoardListResp boards = client.BoardList(new BoardListReq { Instance = instance });
-            foreach(DetectedPort port in boards.Ports)
+            foreach (DetectedPort port in boards.Ports)
             {
                 if (port.Boards.Count > 0)
                 {
                     mainWindowView.Status += $"Detected a {port.Boards[0].Name} on port {port.Address}";
+                    Thread.Sleep(1000);
+                    mainWindowView.SelectedBoard = mainWindowView.SelectedConfig.SupportedBoards.Find((b) => b.FQBN == port.Boards[0].FQBN);
+                    mainWindowView.SelectedComPort = port.Address;
                 }
             }
             mainWindowView.Busy = false;
         }
 
-        public void GetLibrary(string name)
+
+        /// <summary>
+        /// Install required libraries that do not have to be obtained via GIT
+        /// </summary>
+        /// <param name="name">Name of library to install</param>
+        public async void GetLibrary(string name)
         {
             mainWindowView.Busy = true;
-            ProcessStartInfo start = new ProcessStartInfo();
-            start.FileName = $@"arduino-cli";
-            start.Arguments = $"lib install \"{name}\"";
-            start.UseShellExecute = false;
-            start.WindowStyle = ProcessWindowStyle.Hidden;
-            start.RedirectStandardOutput = true;
-            start.RedirectStandardError = true;
-            start.CreateNoWindow = true;
-            Process process = new Process();
-            process.OutputDataReceived += Process_OutputDataReceived;
-            process.ErrorDataReceived += Process_OutputDataReceived;
-            process.StartInfo = start;
-            process.Start();
-            process.BeginOutputReadLine();
-            process.BeginErrorReadLine();
-            process.WaitForExit();
+            AsyncServerStreamingCall<LibraryInstallResp> libInstall = client.LibraryInstall(new LibraryInstallReq { Instance = instance, Name = name });
+            while (await libInstall.ResponseStream.MoveNext())
+            {
+                LibraryInstallResp resp = libInstall.ResponseStream.Current;
+                if (resp.Progress != null)
+                {
+                    if (!String.IsNullOrEmpty(resp.Progress.File))
+                    {
+                        currentFile = resp.Progress.File;
+                        totalSize = resp.Progress.TotalSize;
+                    }
+                    if (!resp.Progress.Completed)
+                    {
+                        mainWindowView.Status += $"Downloading {currentFile}: {resp.Progress.Downloaded}/{totalSize}";
+                    }
+                    else
+                    {
+                        mainWindowView.Status += $"{currentFile} download complete";
+                    }
+                }
+            }
             mainWindowView.Busy = false;
         }
 

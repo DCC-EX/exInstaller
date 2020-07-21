@@ -21,21 +21,6 @@
     <AvaloniaResource Include="Assets\**" />
   </ItemGroup>
   <ItemGroup>
-    <None Remove="board.proto" />
-    <None Remove="commands.proto" />
-    <None Remove="commands\board.proto" />
-    <None Remove="commands\commands.proto" />
-    <None Remove="commands\common.proto" />
-    <None Remove="commands\compile.proto" />
-    <None Remove="commands\core.proto" />
-    <None Remove="commands\lib.proto" />
-    <None Remove="commands\upload.proto" />
-    <None Remove="common.proto" />
-    <None Remove="compile.proto" />
-    <None Remove="core.proto" />
-    <None Remove="lib.proto" />
-  </ItemGroup>
-  <ItemGroup>
     <PackageReference Include="Avalonia" Version="0.9.11" />
     <PackageReference Include="Avalonia.Desktop" Version="0.9.11" />
     <PackageReference Include="Avalonia.ReactiveUI" Version="0.9.11" />
@@ -43,8 +28,8 @@
     <PackageReference Include="Grpc" Version="2.30.0" />
     <PackageReference Include="Grpc.Core" Version="2.30.0" />
     <PackageReference Include="Grpc.Core.Api" Version="2.30.0" />
-    <PackageReference Include="Grpc.Net.Client" Version="2.29.0" />
-    <PackageReference Include="Grpc.Net.Common" Version="2.29.0" />
+    <PackageReference Include="Grpc.Net.Client" Version="2.30.0" />
+    <PackageReference Include="Grpc.Net.Common" Version="2.30.0" />
     <PackageReference Include="Grpc.Tools" Version="2.30.0">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
