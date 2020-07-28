@@ -6,18 +6,16 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
-using System.IO.Ports;
+
 using System.Linq;
 using System.Net;
 using System.Reactive;
 using System.Reactive.Linq;
 using System.Runtime.InteropServices;
-using System.Runtime.InteropServices.ComTypes;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Diagnostics;
-using Grpc.Core;
+
 
 namespace BaseStationInstaller.ViewModels
 {
@@ -28,10 +26,6 @@ namespace BaseStationInstaller.ViewModels
         Signature sig = new Signature(new Identity("random", "random@random.com"), DateTimeOffset.Now);
         public MainWindowViewModel()
         {
-            //WiringDiagram = "pack://application:,,,/Resources/dcc-ex-logo.png";
-            Task task = new Task(RefreshComports);
-            task.Start();
-
             if (File.Exists("status.log"))
             {
                 if (File.Exists("status.old.log"))
@@ -39,15 +33,14 @@ namespace BaseStationInstaller.ViewModels
                     File.Delete("status.old.log");
                 }
                 File.Move("status.log", "status.old.log");
-                //File.Create("status.log");
-            }/* else
-            {
-                File.Create("status.log");
-            }*/
+               
+            }
             logWriter = new StreamWriter("status.log");
-            task = new Task(InitArduinoCLI);
+            Task task = new Task(InitArduinoCLI);
             task.Start();
-            RefreshComPortButton = ReactiveCommand.Create(RefreshComPortsCommand);
+            RefreshComPortButton = ReactiveCommand.Create(RefreshComPortsCommand, this.WhenAnyValue(x => x.RefreshingPorts, (refrshing) => {
+                return !refrshing;
+            }).ObserveOn(RxApp.MainThreadScheduler));
             CompileUpload = ReactiveCommand.Create(CompileandUploadCommand, this.WhenAnyValue(x => x.Busy, (busy) =>
             {
                 return !busy;
@@ -61,6 +54,8 @@ namespace BaseStationInstaller.ViewModels
         private void ProcessStatusChange(string status)
         {
             StatusCaret = status.Length;
+            logWriter.Flush();
+            logWriter.Write(status);            
         }
 
 
@@ -132,8 +127,10 @@ namespace BaseStationInstaller.ViewModels
                         start.WindowStyle = ProcessWindowStyle.Hidden;
                         start.CreateNoWindow = true;
                         start.RedirectStandardOutput = true;
-                        Process process = new Process();
-                        process.StartInfo = start;
+                        Process process = new Process
+                        {
+                            StartInfo = start
+                        };
                         process.Start();
                     }
                 }
@@ -147,6 +144,9 @@ namespace BaseStationInstaller.ViewModels
 
         public void Closing(object sender, System.ComponentModel.CancelEventArgs e)
         {
+            logWriter.Flush();
+            logWriter.Close();
+            logWriter.Dispose();
             try
             {
                 if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX) || RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
@@ -374,7 +374,7 @@ namespace BaseStationInstaller.ViewModels
 
         void RefreshComPortsCommand()
         {
-            Task task = new Task(RefreshComports);
+            Task task = new Task(helper.DetectBoard);
             task.Start();
         }
 
@@ -401,33 +401,6 @@ namespace BaseStationInstaller.ViewModels
         /// <summary>
         /// Refresh list of avaliable comports
         /// </summary>
-        private async void RefreshComports()
-        {
-            Busy = true;
-            RefreshingPorts = true;
-            Progress = 0;
-            Status += "Refreshing Ports...";
-            for (int i = 0; i < 5; i++)
-            {
-                Progress += 20;
-                Thread.Sleep(500);
-                //CommandManager.InvalidateRequerySuggested();
-            }
-            AvailableComPorts = new ObservableCollection<string>(SerialPort.GetPortNames());
-            if (AvailableComPorts.Count >= 1)
-            {
-                SelectedComPort = AvailableComPorts[0];
-            }
-            Progress = 100;
-            Busy = false;
-            RefreshingPorts = false;
-            Thread.Sleep(500);
-            Progress = 0;
-            Status += "Idle";
-            Thread.Sleep(10000);
-            //CommandManager.InvalidateRequerySuggested();
-        }
-
         private async void ProcessCompileUpload()
         {
             Progress = 0;
@@ -461,10 +434,11 @@ namespace BaseStationInstaller.ViewModels
         private async void CompileSketch()
         {
             Busy = true;
+            RefreshingPorts = true;
             Status += "Changing MotorShield options";
-            Progress = 25;
+            Progress = 1;
             string[] config = File.ReadAllLines($@"{SelectedConfig.Name}/{SelectedConfig.ConfigFile}");
-            Progress = 30;
+            Progress = 2;
             switch (SelectedConfig.Name)
             {
                 case "BaseStationClassic":
@@ -491,13 +465,10 @@ namespace BaseStationInstaller.ViewModels
                     }
                     break;
             }
-
-            Progress = 75;
             File.WriteAllLines($@"{SelectedConfig.Name}/{SelectedConfig.ConfigFile}", config);
-            Progress = 100;
             Thread.Sleep(1000);
+            Progress = 3;
             Status += $"Compiling {SelectedConfig.DisplayName} Sketch";
-            Progress = 0;
             var dir = new DirectoryInfo($@"./{SelectedConfig.Name}");
             dir.CreateSubdirectory("./build");
             foreach (var file in dir.EnumerateDirectories("_git2*"))
@@ -505,17 +476,13 @@ namespace BaseStationInstaller.ViewModels
                 file.Delete();
             }
             helper.ArduinoComplieSketch(SelectedBoard.FQBN, $@"./{SelectedConfig.Name}/{SelectedConfig.InputFileLocation}");
-            Progress = 100;
+
             RefreshingPorts = true;
             Thread.Sleep(5000);
             Status += $"Uploading to {SelectedComPort}";
-            Progress = 0;
+
             helper.UploadSketch(SelectedBoard.FQBN, SelectedComPort, $@"{SelectedConfig.Name}/{SelectedConfig.InputFileLocation}");
-            Progress = 100;
-            Thread.Sleep(5000);
-            Progress = 0;
-            Busy = false;
-            RefreshingPorts = false;
+            
         }
 
         private async Task GitCode(string url, string location)

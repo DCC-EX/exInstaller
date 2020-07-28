@@ -1,6 +1,7 @@
 ﻿using BaseStationInstaller.Models;
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Text;
 
 namespace BaseStationInstaller.ViewModels
@@ -14,7 +15,10 @@ namespace BaseStationInstaller.ViewModels
 
         public Board SelectedBoard { get; set; }
 
+        public ObservableCollection<string> AvailableComPorts { get; set; }
+
         public Config SelectedConfig { get; }
         public bool Busy { get; set; }
+        public bool RefreshingPorts { get; set; }
     }
 }

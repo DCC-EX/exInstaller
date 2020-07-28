@@ -1,10 +1,13 @@
-﻿using BaseStationInstaller.ViewModels;
+﻿using Avalonia.Threading;
+using BaseStationInstaller.ViewModels;
 using Cc.Arduino.Cli.Commands;
+using DynamicData;
 using Grpc.Core;
 using Grpc.Net.Client;
 using ReactiveUI;
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.IO;
 using System.Runtime.CompilerServices;
@@ -49,6 +52,7 @@ namespace BaseStationInstaller.Utils
         long totalSize = 0;
         public async void Init()
         {
+            mainWindowView.Busy = true;
             channel = GrpcChannel.ForAddress("http://127.0.0.1:27160", new GrpcChannelOptions { Credentials = ChannelCredentials.Insecure });
             client = new ArduinoCore.ArduinoCoreClient(channel);
             AsyncServerStreamingCall<InitResp> init = client.Init(new InitReq());
@@ -108,6 +112,7 @@ namespace BaseStationInstaller.Utils
 
             mainWindowView.Status += "Boards Installed and Arduino CLI initialized";
             mainWindowView.Progress = 0;
+            mainWindowView.Busy = false;
         }
 
 
@@ -140,14 +145,18 @@ namespace BaseStationInstaller.Utils
         /// <param name="location">Location of ino/cpp file</param>
         public async void ArduinoComplieSketch(string fqbn, string location)
         {
-            mainWindowView.Busy = true;
             AsyncServerStreamingCall<CompileResp> compile = client.Compile(new CompileReq { Instance = instance, Fqbn = fqbn, Verbose = true, SketchPath = $"./{location}" });
             try
             {
+                int count = 0;
                 while (await compile.ResponseStream.MoveNext())
                 {
                     mainWindowView.Status += compile.ResponseStream.Current.OutStream.ToStringUtf8();
-                    mainWindowView.Progress++;
+                    count++;
+                    if (count % 3 == 0)
+                    {
+                        mainWindowView.Progress++;
+                    }
                     if (compile.ResponseStream.Current.ErrStream.Length >= 1)
                     {
                         mainWindowView.Status += $"ERROR: {compile.ResponseStream.Current.ErrStream.ToStringUtf8()}";
@@ -158,7 +167,6 @@ namespace BaseStationInstaller.Utils
             {
                 mainWindowView.Status += $"Failed to compile sketch in {location} got error {e.Status.Detail}";
             }
-            mainWindowView.Busy = false;
         }
         /// <summary>
         /// Attempt to compile and upload Arudino Sketch
@@ -167,28 +175,42 @@ namespace BaseStationInstaller.Utils
         /// <param name="location">Location of ino/cpp file</param>
         public async void UploadSketch(string fqbn, string port, string location)
         {
-            mainWindowView.Busy = true;
+            mainWindowView.RefreshingPorts = true;
             AsyncServerStreamingCall<UploadResp> upload = client.Upload(new UploadReq { Instance = instance, Fqbn = fqbn, Port = port, SketchPath = location, Verbose = true, Verify = true });
             try
             {
                 StringBuilder sb = new StringBuilder();
                 Stopwatch time = new Stopwatch();
                 time.Start();
+                int count = 0;
                 while (await upload.ResponseStream.MoveNext())
                 {
-                    mainWindowView.Status += $"Uploading elasped time {time.ElapsedMilliseconds / 1000} secs";
-                    mainWindowView.Progress++;
+                    mainWindowView.Status += $"Uploading elasped time {Math.Round(time.ElapsedMilliseconds * 0.001, 3).ToString("00.000")} seconds";
+                    count++;
+                    if (count % 10 == 0)
+                    {
+                        mainWindowView.Progress++;
+                    }
+                    sb.Append($"{upload.ResponseStream.Current.OutStream.ToStringUtf8()}");
                     sb.Append($"{upload.ResponseStream.Current.ErrStream.ToStringUtf8()}");
                 }
                 time.Stop();
                 mainWindowView.Status += sb.ToString();
-                mainWindowView.Status += $"Uploaded and Verified to {port} in {time.ElapsedMilliseconds / 1000} secs";
+                mainWindowView.Status += $"Uploaded and Verified to {port} in {Math.Round(time.ElapsedMilliseconds * 0.001,3).ToString("00.000")} seconds";
+                mainWindowView.Progress = 100;
+                Thread.Sleep(2500);
+                mainWindowView.Progress = 0;
+                mainWindowView.Busy = false;
+                mainWindowView.RefreshingPorts = false;
             }
             catch (RpcException e)
             {
                 mainWindowView.Status += $"Failed to upload because {e.Status.Detail}";
+                mainWindowView.Progress = 0;
+                mainWindowView.Busy = false;
+                mainWindowView.RefreshingPorts = false;
             }
-            mainWindowView.Busy = false;
+
         }
 
         /// <summary>
@@ -198,18 +220,31 @@ namespace BaseStationInstaller.Utils
         {
 
             mainWindowView.Busy = true;
+            mainWindowView.RefreshingPorts = true;
+            mainWindowView.AvailableComPorts = new ObservableCollection<string>();
             BoardListResp boards = client.BoardList(new BoardListReq { Instance = instance });
             foreach (DetectedPort port in boards.Ports)
             {
                 if (port.Boards.Count > 0)
                 {
+
                     mainWindowView.Status += $"Detected a {port.Boards[0].Name} on port {port.Address}";
+                    Dispatcher.UIThread.InvokeAsync(() =>
+                    {
+                        mainWindowView.AvailableComPorts.Add(port.Address);
+                    });
                     Thread.Sleep(1000);
-                    mainWindowView.SelectedBoard = mainWindowView.SelectedConfig.SupportedBoards.Find((b) => b.FQBN == port.Boards[0].FQBN);
-                    mainWindowView.SelectedComPort = port.Address;
+
+                    if (String.IsNullOrEmpty(mainWindowView.SelectedComPort))
+                    {
+                        mainWindowView.SelectedBoard = mainWindowView.SelectedConfig.SupportedBoards.Find((b) => b.FQBN == port.Boards[0].FQBN);
+                        mainWindowView.SelectedComPort = port.Address;
+                    }
+                    
                 }
             }
             mainWindowView.Busy = false;
+            mainWindowView.RefreshingPorts = false;
         }
 
 

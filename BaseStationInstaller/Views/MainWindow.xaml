@@ -1,4 +1,13 @@
-﻿<Window xmlns="https://github.com/avaloniaui"  xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"         xmlns:vm="clr-namespace:BaseStationInstaller.ViewModels;assembly=BaseStationInstaller"         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"         mc:Ignorable="d" x:Class="BaseStationInstaller.Views.MainWindow"         Icon="/Assets/dccex-logo.ico"         Title="BaseStationInstaller"         Height="450"         Width="900">
+﻿<Window xmlns="https://github.com/avaloniaui"  xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="clr-namespace:BaseStationInstaller.ViewModels;assembly=BaseStationInstaller"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d" x:Class="BaseStationInstaller.Views.MainWindow"
+        Icon="/Assets/dccex-logo.ico"
+        Title="Command Station EX Installer"
+        FontFamily="resm:BaseStationInstaller.Assets#Flameco"
+        BorderBrush="{DynamicResource ThemeAccentBrush}"
+        Height="450" Width="900">
 
   <Design.DataContext>
     <vm:MainWindowViewModel />
@@ -6,7 +15,7 @@
   <Grid>
     <DockPanel>
       <DockPanel DockPanel.Dock="Bottom">
-        <ProgressBar Height="25" Margin="5,0,5,0" Value="{Binding Progress}" VerticalAlignment="Center"  DockPanel.Dock="Right" Width="NaN"></ProgressBar>
+        <ProgressBar Height="25" Margin="5"   Value="{Binding Progress}" VerticalAlignment="Center"   DockPanel.Dock="Right" Width="NaN"></ProgressBar>
       </DockPanel>
       <Grid DockPanel.Dock="Top" Margin="5">
         <Grid.ColumnDefinitions>
@@ -43,8 +52,8 @@
           <TextBlock Margin="5">Select COM Port</TextBlock>
           <ComboBox Margin="5" Items="{Binding AvailableComPorts}" SelectedItem="{Binding SelectedComPort}">
           </ComboBox>
-          <Button Margin="5" Command="{Binding RefreshComPortButton}" Content="Refresh Ports"></Button>
-          <Button Margin="5" Command="{Binding CompileUpload}">Compile and Upload</Button>
+          <Button Margin="5" Background="{DynamicResource ThemeAccentBrush}" Command="{Binding RefreshComPortButton}" Content="Refresh Ports"></Button>
+          <Button Margin="5" Background="{DynamicResource ThemeAccentBrush}" Command="{Binding CompileUpload}">Compile and Upload</Button>
         </StackPanel>
         <TextBox Grid.Column="1" Text="{Binding Status}" TextWrapping="Wrap" CaretIndex="{Binding StatusCaret}" Width="NaN" IsReadOnly="True" Margin="5" />
         <!--<Image  Source="{Binding WiringDiagram}"></Image>-->
