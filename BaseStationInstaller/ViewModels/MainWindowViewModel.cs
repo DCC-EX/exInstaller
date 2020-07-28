@@ -6,17 +6,16 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
-using System.IO.Ports;
+
 using System.Linq;
 using System.Net;
 using System.Reactive;
 using System.Reactive.Linq;
 using System.Runtime.InteropServices;
-using System.Runtime.InteropServices.ComTypes;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Diagnostics;
+
 
 namespace BaseStationInstaller.ViewModels
 {
@@ -27,10 +26,6 @@ namespace BaseStationInstaller.ViewModels
         Signature sig = new Signature(new Identity("random", "random@random.com"), DateTimeOffset.Now);
         public MainWindowViewModel()
         {
-            //WiringDiagram = "pack://application:,,,/Resources/dcc-ex-logo.png";
-            Task task = new Task(RefreshComports);
-            task.Start();
-
             if (File.Exists("status.log"))
             {
                 if (File.Exists("status.old.log"))
@@ -38,24 +33,30 @@ namespace BaseStationInstaller.ViewModels
                     File.Delete("status.old.log");
                 }
                 File.Move("status.log", "status.old.log");
-                //File.Create("status.log");
-            }/* else
-            {
-                File.Create("status.log");
-            }*/
+               
+            }
             logWriter = new StreamWriter("status.log");
-            task = new Task(InitArduinoCLI);
+            Task task = new Task(InitArduinoCLI);
             task.Start();
-            RefreshComPortButton = ReactiveCommand.Create(RefreshComPortsCommand);
+            RefreshComPortButton = ReactiveCommand.Create(RefreshComPortsCommand, this.WhenAnyValue(x => x.RefreshingPorts, (refrshing) => {
+                return !refrshing;
+            }).ObserveOn(RxApp.MainThreadScheduler));
             CompileUpload = ReactiveCommand.Create(CompileandUploadCommand, this.WhenAnyValue(x => x.Busy, (busy) =>
             {
                 return !busy;
             }).ObserveOn(RxApp.MainThreadScheduler));
             SelectedConfig = BaseStationSettings.BaseStationDefaults[0];
             this.WhenAnyValue(x => x.SelectedConfig).Subscribe(ProcessConfigChange);
+            this.WhenAnyValue(x => x.Status).Subscribe(ProcessStatusChange);
             SelectedConfig = BaseStationSettings.BaseStationDefaults[0];
         }
 
+        private void ProcessStatusChange(string status)
+        {
+            StatusCaret = status.Length;
+            logWriter.Flush();
+            logWriter.Write(status);            
+        }
 
 
         private void ProcessConfigChange(Config cfg)
@@ -63,6 +64,8 @@ namespace BaseStationInstaller.ViewModels
             SelectedSupportedBoards = new ObservableCollection<Board>(SelectedConfig.SupportedBoards);
             SelectedSupportedMotorShields = new ObservableCollection<MotorShield>(SelectedConfig.SupportedMotorShields);
             GitCode(SelectedConfig.Git, $@"{SelectedConfig.Name}");
+            Task detect = new Task(helper.DetectBoard);
+            detect.Start();
         }
 
         void InitArduinoCLI()
@@ -124,8 +127,10 @@ namespace BaseStationInstaller.ViewModels
                         start.WindowStyle = ProcessWindowStyle.Hidden;
                         start.CreateNoWindow = true;
                         start.RedirectStandardOutput = true;
-                        Process process = new Process();
-                        process.StartInfo = start;
+                        Process process = new Process
+                        {
+                            StartInfo = start
+                        };
                         process.Start();
                     }
                 }
@@ -139,7 +144,30 @@ namespace BaseStationInstaller.ViewModels
 
         public void Closing(object sender, System.ComponentModel.CancelEventArgs e)
         {
+            logWriter.Flush();
             logWriter.Close();
+            logWriter.Dispose();
+            try
+            {
+                if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX) || RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+                {
+                    foreach (Process proc in Process.GetProcessesByName("arduino-cli"))
+                    {
+                        proc.Kill();
+                    }
+                }
+                if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+                {
+                    foreach (Process proc in Process.GetProcessesByName("arduino-cli.exe"))
+                    {
+                        proc.Kill();
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                
+            }
         }
 
         #region Bindings
@@ -285,6 +313,14 @@ namespace BaseStationInstaller.ViewModels
             set => this.RaiseAndSetIfChanged(ref _status, value + Environment.NewLine);
         }
 
+
+        private int _statusCaret;
+        public int StatusCaret
+        {
+            get => _statusCaret;
+
+            set => this.RaiseAndSetIfChanged(ref _statusCaret, value);
+        }
         //private string _wiringDiagram;
         //public string WiringDiagram
         //{
@@ -338,7 +374,7 @@ namespace BaseStationInstaller.ViewModels
 
         void RefreshComPortsCommand()
         {
-            Task task = new Task(RefreshComports);
+            Task task = new Task(helper.DetectBoard);
             task.Start();
         }
 
@@ -365,33 +401,6 @@ namespace BaseStationInstaller.ViewModels
         /// <summary>
         /// Refresh list of avaliable comports
         /// </summary>
-        private async void RefreshComports()
-        {
-            Busy = true;
-            RefreshingPorts = true;
-            Progress = 0;
-            Status += "Refreshing Ports..." + Environment.NewLine;
-            for (int i = 0; i < 5; i++)
-            {
-                Progress += 20;
-                Thread.Sleep(500);
-                //CommandManager.InvalidateRequerySuggested();
-            }
-            AvailableComPorts = new ObservableCollection<string>(SerialPort.GetPortNames());
-            if (AvailableComPorts.Count >= 1)
-            {
-                SelectedComPort = AvailableComPorts[0];
-            }
-            Progress = 100;
-            Busy = false;
-            RefreshingPorts = false;
-            Thread.Sleep(500);
-            Progress = 0;
-            Status += "Idle" + Environment.NewLine;
-            Thread.Sleep(10000);
-            //CommandManager.InvalidateRequerySuggested();
-        }
-
         private async void ProcessCompileUpload()
         {
             Progress = 0;
@@ -404,7 +413,7 @@ namespace BaseStationInstaller.ViewModels
         int currDep = 0;
         private async Task DownloadPreReqs()
         {
-            Status += "Starting Dependency Downloads" + Environment.NewLine;
+            Status += "Starting Dependency Downloads";
             Thread.Sleep(500);
             foreach (Library dep in SelectedConfig.Libraries)
             {
@@ -417,67 +426,69 @@ namespace BaseStationInstaller.ViewModels
                     await GitCode(dep.Repo, dep.Location);
                 }
             }
-            Status += $"Gitting {SelectedConfig.DisplayName}" + Environment.NewLine;
-            await GitCode(SelectedConfig.Git, $@"{SelectedConfig.Name}");
         }
 
 
 
 
-        private void CompileSketch()
+        private async void CompileSketch()
         {
             Busy = true;
-            Status += "Changing MotorShield options" + Environment.NewLine;
-            Progress = 5;
+            RefreshingPorts = true;
+            Status += "Changing MotorShield options";
+            Progress = 1;
             string[] config = File.ReadAllLines($@"{SelectedConfig.Name}/{SelectedConfig.ConfigFile}");
-            Progress = 10;
+            Progress = 2;
             switch (SelectedConfig.Name)
             {
                 case "BaseStationClassic":
                     config[16] = $"#define MOTOR_SHIELD_TYPE   {(int)SelectedMotorShield.ShieldType}";
-
                     break;
                 case "BaseStationEx":
                     config[17] = $"#define MOTOR_SHIELD_TYPE   {(int)SelectedMotorShield.ShieldType}";
                     break;
-                case "CommandStation":
+                case "CommandStation-DCC":
                     switch (SelectedMotorShield.ShieldType)
                     {
                         case MotorShieldType.Arduino:
-
+                            config[25] = "#define CONFIG_ARDUINO_MOTOR_SHIELD";
                             break;
                         case MotorShieldType.Pololu:
-                            config[14] = $"// DCC* mainTrack = DCC::Create_Arduino_L298Shield_Main(50);";
-                            config[15] = $"// DCC* progTrack = DCC::Create_Arduino_L298Shield_Prog(2);";
-                            config[17] = $"DCC* mainTrack = DCC::Create_Pololu_MC33926Shield_Main(50);";
-                            config[18] = $"DCC* progTrack = DCC::Create_Pololu_MC33926Shield_Prog(2);";
+                            config[25] = "#define CONFIG_POLOLU_MOTOR_SHIELD";
+                            break;
+                        case MotorShieldType.FireBox_MK1:
+                            config[25] = "#define CONFIG_WSM_FIREBOX_MK1";
+                            break;
+                        case MotorShieldType.FireBox_MK1S:
+                            config[25] = "#define CONFIG_WSM_FIREBOX_MK1S";
                             break;
                     }
                     break;
-
             }
-            Progress = 15;
             File.WriteAllLines($@"{SelectedConfig.Name}/{SelectedConfig.ConfigFile}", config);
-            Progress = 20;
             Thread.Sleep(1000);
-            Status += $"Compiling {SelectedConfig.DisplayName} Sketch" + Environment.NewLine;
-            helper.ArduinoComplieSketch(SelectedBoard.FQBN, $@"{SelectedConfig.Name}/{SelectedConfig.InputFileLocation}", SelectedComPort);
+            Progress = 3;
+            Status += $"Compiling {SelectedConfig.DisplayName} Sketch";
+            var dir = new DirectoryInfo($@"./{SelectedConfig.Name}");
+            dir.CreateSubdirectory("./build");
+            foreach (var file in dir.EnumerateDirectories("_git2*"))
+            {
+                file.Delete();
+            }
+            helper.ArduinoComplieSketch(SelectedBoard.FQBN, $@"./{SelectedConfig.Name}/{SelectedConfig.InputFileLocation}");
 
             RefreshingPorts = true;
-            Thread.Sleep(1000);
-            //Status += $"Uploading to {SelectedComPort}" + Environment.NewLine;
-            Progress = 75;
-            //helper.UploadSketch(SelectedBoard.FQBN, SelectedComPort, Path.GetFileName(SelectedConfig.InputFileLocation));
-            Progress = 100;
-            Thread.Sleep(1000);
-            Progress = 0;
-            Busy = false;
-            RefreshingPorts = false;
+            Thread.Sleep(5000);
+            Status += $"Uploading to {SelectedComPort}";
+
+            helper.UploadSketch(SelectedBoard.FQBN, SelectedComPort, $@"{SelectedConfig.Name}/{SelectedConfig.InputFileLocation}");
+            
         }
 
         private async Task GitCode(string url, string location)
         {
             Busy = true;
+            Status += $"Obtaining {url} via git";
             CloneOptions options = new CloneOptions();
             options.RepositoryOperationCompleted = new LibGit2Sharp.Handlers.RepositoryOperationCompleted(GotCode);
             Progress = 0;
@@ -512,16 +523,16 @@ namespace BaseStationInstaller.ViewModels
                             switch (stashApply)
                             {
                                 case StashApplyStatus.Applied:
-                                    Status += $"Successfully applied Stashed changes in {location}{Environment.NewLine}";
+                                    Status += $"Successfully applied Stashed changes in {location}";
                                     break;
                                 case StashApplyStatus.Conflicts:
-                                    Status += $"Reverted to Default Checkout on {location} since changes conflict with upstream{Environment.NewLine}";
+                                    Status += $"Reverted to Default Checkout on {location} since changes conflict with upstream";
                                     break;
                                 case StashApplyStatus.NotFound:
-                                    Status += $"Stash not found for {location}{Environment.NewLine}";
+                                    Status += $"Stash not found for {location}";
                                     break;
                                 case StashApplyStatus.UncommittedChanges:
-                                    Status += $"There are uncommited changes in {location}{Environment.NewLine}";
+                                    Status += $"There are uncommited changes in {location}";
                                     break;
                             }
                         }

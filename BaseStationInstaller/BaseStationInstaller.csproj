@@ -5,11 +5,13 @@
     <RuntimeIdentifiers>win-x86;win-x64;osx-x64;linux-x64;linux-arm;linux-arm64</RuntimeIdentifiers>
     <StartupObject>BaseStationInstaller.Program</StartupObject>
     <AssemblyName>BaseStationInstaller</AssemblyName>
-    <Version>2.0.0</Version>
+    <Version>2.1.0</Version>
     <Authors>Dex's Lab</Authors>
     <Company>DCC++ Extended</Company>
     <PackageProjectUrl>https://dcc-ex.github.io/</PackageProjectUrl>
     <RepositoryUrl>https://github.com/DCC-EX/BaseStation-Installer</RepositoryUrl>
+    <PackageIcon>dcc-ex-logo.png</PackageIcon>
+    <ApplicationIcon>Assets\dccex-logo.ico</ApplicationIcon>
   </PropertyGroup>
   <ItemGroup>
     <Compile Update="**\*.xaml.cs">
@@ -21,13 +23,31 @@
     <AvaloniaResource Include="Assets\**" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Avalonia" Version="0.9.10" />
-    <PackageReference Include="Avalonia.Desktop" Version="0.9.10" />
-    <PackageReference Include="Avalonia.ReactiveUI" Version="0.9.10" />
+    <PackageReference Include="Avalonia" Version="0.9.11" />
+    <PackageReference Include="Avalonia.Desktop" Version="0.9.11" />
+    <PackageReference Include="Avalonia.ReactiveUI" Version="0.9.11" />
+    <PackageReference Include="Google.Protobuf" Version="3.12.3" />
+    <PackageReference Include="Grpc" Version="2.30.0" />
+    <PackageReference Include="Grpc.Core" Version="2.30.0" />
+    <PackageReference Include="Grpc.Core.Api" Version="2.30.0" />
+    <PackageReference Include="Grpc.Net.Client" Version="2.30.0" />
+    <PackageReference Include="Grpc.Net.Common" Version="2.30.0" />
+    <PackageReference Include="Grpc.Tools" Version="2.30.0">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
     <PackageReference Include="LibGit2Sharp" Version="0.26.2" />
-    <PackageReference Include="LibGit2Sharp.NativeBinaries" Version="2.0.306" />
     <PackageReference Include="Newtonsoft.Json" Version="12.0.3" />
     <PackageReference Include="System.IO.Ports" Version="4.7.0" />
+  </ItemGroup>
+  <ItemGroup>
+    <Protobuf Include="commands\board.proto" GrpcServices="Client" />
+    <Protobuf Include="commands\commands.proto" GrpcServices="Client" />
+    <Protobuf Include="commands\common.proto" GrpcServices="Client" />
+    <Protobuf Include="commands\compile.proto" GrpcServices="Client" />
+    <Protobuf Include="commands\core.proto" GrpcServices="Client" />
+    <Protobuf Include="commands\lib.proto" GrpcServices="Client" />
+    <Protobuf Include="commands\upload.proto" GrpcServices="Client" />
   </ItemGroup>
   <ItemGroup>
     <None Update="arduino-cli-runtimes\Linux_32bit\arduino-cli">
@@ -56,6 +76,10 @@
     </None>
     <None Update="arduino-cli-runtimes/*">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Assets\dcc-ex-logo.png">
+      <Pack>True</Pack>
+      <PackagePath></PackagePath>
     </None>
   </ItemGroup>
 </Project>

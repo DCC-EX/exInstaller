@@ -3,6 +3,7 @@ using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
 using BaseStationInstaller.ViewModels;
 using BaseStationInstaller.Views;
+using Avalonia.ReactiveUI;
 
 
 namespace BaseStationInstaller
