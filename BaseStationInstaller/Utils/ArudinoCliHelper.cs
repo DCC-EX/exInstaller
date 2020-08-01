@@ -1,4 +1,5 @@
 ﻿using Avalonia.Threading;
+using BaseStationInstaller.Models;
 using BaseStationInstaller.ViewModels;
 using Cc.Arduino.Cli.Commands;
 using DynamicData;
@@ -42,17 +43,15 @@ namespace BaseStationInstaller.Utils
             start.RedirectStandardError = false;
             process.StartInfo = start;
             process.Start();
-            Task task = new Task(Init);
-            task.Start();
-
         }
 
 
         string currentFile = "";
         long totalSize = 0;
-        public async void Init()
+        public async Task<bool> Init()
         {
             mainWindowView.Busy = true;
+            mainWindowView.RefreshingPorts = true;
             channel = GrpcChannel.ForAddress("http://127.0.0.1:27160", new GrpcChannelOptions { Credentials = ChannelCredentials.Insecure });
             client = new ArduinoCore.ArduinoCoreClient(channel);
             AsyncServerStreamingCall<InitResp> init = client.Init(new InitReq());
@@ -62,57 +61,83 @@ namespace BaseStationInstaller.Utils
                 InitResp resp = init.ResponseStream.Current;
                 instance = resp.Instance;
             }
-
-            AsyncServerStreamingCall<UpdateIndexResp> update = client.UpdateIndex(new UpdateIndexReq { Instance = instance });
-            while (await update.ResponseStream.MoveNext())
+            if (instance != null)
             {
-                UpdateIndexResp resp = update.ResponseStream.Current;
-                if (resp.DownloadProgress != null)
+                try
                 {
-                    if (!String.IsNullOrEmpty(resp.DownloadProgress.File))
+                    AsyncServerStreamingCall<UpdateIndexResp> update = client.UpdateIndex(new UpdateIndexReq { Instance = instance });
+                    while (await update.ResponseStream.MoveNext())
                     {
-                        currentFile = resp.DownloadProgress.File;
-                        totalSize = resp.DownloadProgress.TotalSize;
+                        UpdateIndexResp resp = update.ResponseStream.Current;
+                        if (resp.DownloadProgress != null)
+                        {
+                            if (!String.IsNullOrEmpty(resp.DownloadProgress.File))
+                            {
+                                currentFile = resp.DownloadProgress.File;
+                                totalSize = resp.DownloadProgress.TotalSize;
+                            }
+                            if (!resp.DownloadProgress.Completed)
+                            {
+                                mainWindowView.Status += $"Downloading {currentFile}: {resp.DownloadProgress.Downloaded}/{totalSize}";
+                            }
+                            else
+                            {
+                                mainWindowView.Status += $"{currentFile} download complete";
+                            }
+                        }
+
                     }
-                    if (!resp.DownloadProgress.Completed)
+
+                    AsyncServerStreamingCall<PlatformInstallResp> avr = client.PlatformInstall(new PlatformInstallReq { Instance = instance, Architecture = "avr", PlatformPackage = "arduino" });
+                    while (await avr.ResponseStream.MoveNext())
                     {
-                        mainWindowView.Status += $"Downloading {currentFile}: {resp.DownloadProgress.Downloaded}/{totalSize}";
+                        SendProgress(avr.ResponseStream.Current);
                     }
-                    else
+
+                    AsyncServerStreamingCall<PlatformInstallResp> mega = client.PlatformInstall(new PlatformInstallReq { Instance = instance, Architecture = "megaavr", PlatformPackage = "arduino" });
+                    while (await mega.ResponseStream.MoveNext())
                     {
-                        mainWindowView.Status += $"{currentFile} download complete";
+                        SendProgress(mega.ResponseStream.Current);
                     }
+
+                    AsyncServerStreamingCall<PlatformInstallResp> samd = client.PlatformInstall(new PlatformInstallReq { Instance = instance, Architecture = "samd", PlatformPackage = "arduino" });
+                    while (await samd.ResponseStream.MoveNext())
+                    {
+                        SendProgress(samd.ResponseStream.Current);
+                    }
+
+                    AsyncServerStreamingCall<PlatformInstallResp> sparkfun = client.PlatformInstall(new PlatformInstallReq { Instance = instance, Architecture = "samd", PlatformPackage = "SparkFun" });
+                    while (await sparkfun.ResponseStream.MoveNext())
+                    {
+                        SendProgress(sparkfun.ResponseStream.Current);
+                    }
+
+                    mainWindowView.Status += "Boards Installed and Arduino CLI initialized";
+                    mainWindowView.Progress = 0;
+                    mainWindowView.Busy = false;
+                    mainWindowView.RefreshingPorts = false;
+                    return true;
+                } catch (RpcException e)
+                {
+                    mainWindowView.Status += "Arduino CLI failed to initalize please restart Installer";
+                    mainWindowView.Status += $"Error: {e.Message}";
+                    mainWindowView.Progress = 0;
+                    mainWindowView.Busy = true;
+                    mainWindowView.RefreshingPorts = true;
+                    return false;
                 }
-
-            }
-
-            AsyncServerStreamingCall<PlatformInstallResp> avr = client.PlatformInstall(new PlatformInstallReq { Instance = instance, Architecture = "avr", PlatformPackage = "arduino" });
-            while (await avr.ResponseStream.MoveNext())
+                
+            } 
+            else
             {
-                SendProgress(avr.ResponseStream.Current);
+                mainWindowView.Status += "Arduino CLI failed to initalize please restart Installer";
+                mainWindowView.Progress = 0;
+                mainWindowView.Busy = true;
+                mainWindowView.RefreshingPorts = true;
+                return false;
             }
 
-            AsyncServerStreamingCall<PlatformInstallResp> mega = client.PlatformInstall(new PlatformInstallReq { Instance = instance, Architecture = "megaavr", PlatformPackage = "arduino" });
-            while (await mega.ResponseStream.MoveNext())
-            {
-                SendProgress(mega.ResponseStream.Current);
-            }
-
-            AsyncServerStreamingCall<PlatformInstallResp> samd = client.PlatformInstall(new PlatformInstallReq { Instance = instance, Architecture = "samd", PlatformPackage = "arduino" });
-            while (await samd.ResponseStream.MoveNext())
-            {
-                SendProgress(samd.ResponseStream.Current);
-            }
-
-            AsyncServerStreamingCall<PlatformInstallResp> sparkfun = client.PlatformInstall(new PlatformInstallReq { Instance = instance, Architecture = "samd", PlatformPackage = "SparkFun" });
-            while (await sparkfun.ResponseStream.MoveNext())
-            {
-                SendProgress(sparkfun.ResponseStream.Current);
-            }
-
-            mainWindowView.Status += "Boards Installed and Arduino CLI initialized";
-            mainWindowView.Progress = 0;
-            mainWindowView.Busy = false;
+            
         }
 
 

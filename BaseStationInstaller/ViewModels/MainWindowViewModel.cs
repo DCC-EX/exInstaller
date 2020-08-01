@@ -36,8 +36,7 @@ namespace BaseStationInstaller.ViewModels
                
             }
             logWriter = new StreamWriter("status.log");
-            Task task = new Task(InitArduinoCLI);
-            task.Start();
+            InitArduinoCLI();
             RefreshComPortButton = ReactiveCommand.Create(RefreshComPortsCommand, this.WhenAnyValue(x => x.RefreshingPorts, (refrshing) => {
                 return !refrshing;
             }).ObserveOn(RxApp.MainThreadScheduler));
@@ -45,30 +44,34 @@ namespace BaseStationInstaller.ViewModels
             {
                 return !busy;
             }).ObserveOn(RxApp.MainThreadScheduler));
-            SelectedConfig = BaseStationSettings.BaseStationDefaults[0];
             this.WhenAnyValue(x => x.SelectedConfig).Subscribe(ProcessConfigChange);
             this.WhenAnyValue(x => x.Status).Subscribe(ProcessStatusChange);
-            SelectedConfig = BaseStationSettings.BaseStationDefaults[0];
         }
 
         private void ProcessStatusChange(string status)
         {
-            StatusCaret = status.Length;
-            logWriter.Flush();
-            logWriter.Write(status);            
+            if (!String.IsNullOrEmpty(status))
+            {
+                StatusCaret = status.Length;
+                logWriter.Flush();
+                logWriter.Write(status);
+            }
         }
 
 
         private void ProcessConfigChange(Config cfg)
         {
-            SelectedSupportedBoards = new ObservableCollection<Board>(SelectedConfig.SupportedBoards);
-            SelectedSupportedMotorShields = new ObservableCollection<MotorShield>(SelectedConfig.SupportedMotorShields);
-            GitCode(SelectedConfig.Git, $@"{SelectedConfig.Name}");
-            Task detect = new Task(helper.DetectBoard);
-            detect.Start();
+            if (!String.IsNullOrEmpty(SelectedConfig.Name))
+            {
+                SelectedSupportedBoards = new ObservableCollection<Board>(SelectedConfig.SupportedBoards);
+                SelectedSupportedMotorShields = new ObservableCollection<MotorShield>(SelectedConfig.SupportedMotorShields);
+                GitCode(SelectedConfig.Git, $@"{SelectedConfig.Name}");
+                Task detect = new Task(helper.DetectBoard);
+                detect.Start();
+            }
         }
 
-        void InitArduinoCLI()
+        async void InitArduinoCLI()
         {
             Busy = true;
             string cliRuntime = "";
@@ -135,6 +138,11 @@ namespace BaseStationInstaller.ViewModels
                     }
                 }
                 helper = new ArudinoCliHelper(this);
+                bool cli = await helper.Init();
+                if (cli)
+                {
+                    SelectedConfig = BaseStationSettings.BaseStationDefaults[0];
+                }
             }
             else
             {
