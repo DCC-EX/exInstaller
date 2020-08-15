@@ -10,15 +10,18 @@ namespace BaseStationInstaller.Models
 
     public class Board
     {
-        public Board(string name, /*ArduinoModel platform,*/ string fqbn)
+        public Board(string name, /*ArduinoModel platform,*/ string fqbn, List<Platform> platforms)
         {
             Name = name;
             //Platform = platform;
             FQBN = fqbn;
+            Platforms = platforms;
         }
         public string Name { get; set; }
         //public ArduinoModel Platform { get; set; }
 
         public string FQBN;
+
+        public List<Platform> Platforms { get; set; }
     }
 }

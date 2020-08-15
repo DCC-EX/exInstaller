@@ -13,7 +13,7 @@ namespace BaseStationInstaller.Models
     {
         public string Name { get; set; }
         public string Git { get; set; }
-        public List<Library> Libraries { get; set; }
+        public List<Library> Libraries { get; set; }        
         public List<Board> SupportedBoards { get; set; }
         public List<MotorShield> SupportedMotorShields { get; set; }
         public string DisplayName { get; set; }
@@ -47,11 +47,18 @@ namespace BaseStationInstaller.Models
                     ConfigFile = $@"DCCpp_EX/DCCppEX/Config.h",
                     InputFileLocation = "DCCpp_EX/DCCppEX",
                    Libraries = new List<Library>(),
+                   
                    AllowAdvanced = true,
                     SupportedBoards = new List<Board>()
                     {
-                        new Board("Uno", "arduino:avr:uno"),
-                        new Board("Mega", "arduino:avr:mega"),
+                        new Board("Uno", "arduino:avr:uno", new List<Platform>()
+                   {
+                       new Platform("avr", "arduino")
+                   }),
+                        new Board("Mega", "arduino:avr:mega",  new List<Platform>()
+                   {
+                       new Platform("avr", "arduino")
+                   }),
                     },
                     SupportedMotorShields = new List<MotorShield>()
                     {
@@ -73,8 +80,14 @@ namespace BaseStationInstaller.Models
                     AllowAdvanced = false,
                     SupportedBoards = new List<Board>()
                     {
-                        new Board("Uno",  "arduino:avr:uno"),
-                        new Board("Mega",  "arduino:avr:mega"),
+                        new Board("Uno",  "arduino:avr:uno",  new List<Platform>()
+                   {
+                       new Platform("avr", "arduino")
+                   }),
+                        new Board("Mega",  "arduino:avr:mega",  new List<Platform>()
+                   {
+                       new Platform("avr", "arduino")
+                   }),
                     },
                     SupportedMotorShields = new List<MotorShield>()
                     {
@@ -86,8 +99,8 @@ namespace BaseStationInstaller.Models
             new Config
                 {
                     DisplayName = "CommandStation EX",
-                    Name = "CommandStation-DCC",
-                    Git = "https://github.com/DCC-EX/CommandStation-DCC.git",
+                    Name = "CommandStation-EX",
+                    Git = "https://github.com/DCC-EX/CommandStation-EX.git",
                     ConfigFile = @"Config.h",
                     InputFileLocation =  @"",
                     AllowAdvanced = true,
@@ -101,9 +114,21 @@ namespace BaseStationInstaller.Models
                    
                     SupportedBoards = new List<Board>()
                     {
-                        new Board("Uno", /*ArduinoModel.UnoR3,*/ "arduino:avr:uno"),
-                        new Board("Mega", /*ArduinoModel.Mega2560,*/ "arduino:avr:mega"),
-                        new Board("SAM21", /*ArduinoModel.Mega2560,*/ "SparkFun:samd"),
+                        new Board("Uno", /*ArduinoModel.UnoR3,*/ "arduino:avr:uno",new List<Platform>()
+                   {
+                       new Platform("avr", "arduino"),
+                   }),
+                        new Board("Mega", /*ArduinoModel.Mega2560,*/ "arduino:avr:mega",new List<Platform>()
+                   {
+                       new Platform("avr", "arduino"),
+                       
+                   }),
+                        new Board("SAM21", /*ArduinoModel.Mega2560,*/ "SparkFun:samd", new List<Platform>()
+                   {
+                       new Platform("avr", "arduino"),
+                       new Platform("samd", "arduino"),
+                       new Platform("samd", "SparkFun")
+                   }),
                     },
                     SupportedMotorShields = new List<MotorShield>()
                     {

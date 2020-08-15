@@ -36,7 +36,8 @@ namespace BaseStationInstaller.ViewModels
                
             }
             logWriter = new StreamWriter("status.log");
-            InitArduinoCLI();
+            Task task = new Task(InitArduinoCLI);
+            task.Start();
             RefreshComPortButton = ReactiveCommand.Create(RefreshComPortsCommand, this.WhenAnyValue(x => x.RefreshingPorts, (refrshing) => {
                 return !refrshing;
             }).ObserveOn(RxApp.MainThreadScheduler));
@@ -146,7 +147,7 @@ namespace BaseStationInstaller.ViewModels
             }
             else
             {
-                Status += "This platform is not supported by this installer at this time";
+                Status += $"This platform is not supported by this installer at this time{Environment.NewLine}";
             }
         }
 
@@ -318,7 +319,7 @@ namespace BaseStationInstaller.ViewModels
         {
             get => _status;
 
-            set => this.RaiseAndSetIfChanged(ref _status, value + Environment.NewLine);
+            set => this.RaiseAndSetIfChanged(ref _status, value);
         }
 
 
@@ -413,27 +414,49 @@ namespace BaseStationInstaller.ViewModels
         {
             Progress = 0;
             Busy = true;
-            await DownloadPreReqs();
-            Task task = new Task(CompileSketch);
-            task.Start();
+            bool success = await DownloadPreReqs();
+            if (success)
+            {
+                Task task = new Task(CompileSketch);
+                task.Start();
+            } else
+            {
+                RefreshingPorts = false;
+                Busy = false;
+                Progress = 0;
+                Status += $"Failed to download dependencies aborting compilation {Environment.NewLine}";
+            }
         }
 
         int currDep = 0;
-        private async Task DownloadPreReqs()
+        private async Task<bool> DownloadPreReqs()
         {
-            Status += "Starting Dependency Downloads";
+            Status += $"Starting Dependency Downloads {Environment.NewLine}";
             Thread.Sleep(500);
+            foreach(Platform plat in SelectedBoard.Platforms)
+            {
+                bool success = await helper.GetBoard(plat.Architecture, plat.Package);
+                if (!success)
+                {
+                    return false;
+                }
+            }
             foreach (Library dep in SelectedConfig.Libraries)
             {
                 if (dep.LibraryDownloadAvailable)
                 {
-                    helper.GetLibrary(dep.Name);
+                    bool success = await helper.GetLibrary(dep.Name);
+                    if (!success)
+                    {
+                        await GitCode(dep.Repo, dep.Location);
+                    }
                 }
                 else
                 {
                     await GitCode(dep.Repo, dep.Location);
                 }
             }
+            return true;
         }
 
 
@@ -443,7 +466,7 @@ namespace BaseStationInstaller.ViewModels
         {
             Busy = true;
             RefreshingPorts = true;
-            Status += "Changing MotorShield options";
+            Status += $"Changing MotorShield options{Environment.NewLine}";
             Progress = 1;
             string[] config = File.ReadAllLines($@"{SelectedConfig.Name}/{SelectedConfig.ConfigFile}");
             Progress = 2;
@@ -476,7 +499,7 @@ namespace BaseStationInstaller.ViewModels
             File.WriteAllLines($@"{SelectedConfig.Name}/{SelectedConfig.ConfigFile}", config);
             Thread.Sleep(1000);
             Progress = 3;
-            Status += $"Compiling {SelectedConfig.DisplayName} Sketch";
+            Status += $"Compiling {SelectedConfig.DisplayName} Sketch{Environment.NewLine}";
             var dir = new DirectoryInfo($@"./{SelectedConfig.Name}");
             dir.CreateSubdirectory("./build");
             foreach (var file in dir.EnumerateDirectories("_git2*"))
@@ -496,7 +519,7 @@ namespace BaseStationInstaller.ViewModels
         private async Task GitCode(string url, string location)
         {
             Busy = true;
-            Status += $"Obtaining {url} via git";
+            Status += $"Obtaining {url} via git{Environment.NewLine}";
             CloneOptions options = new CloneOptions();
             options.RepositoryOperationCompleted = new LibGit2Sharp.Handlers.RepositoryOperationCompleted(GotCode);
             Progress = 0;
@@ -531,21 +554,26 @@ namespace BaseStationInstaller.ViewModels
                             switch (stashApply)
                             {
                                 case StashApplyStatus.Applied:
-                                    Status += $"Successfully applied Stashed changes in {location}";
+                                    Status += $"Successfully applied Stashed changes in {location}{Environment.NewLine}";
                                     break;
                                 case StashApplyStatus.Conflicts:
-                                    Status += $"Reverted to Default Checkout on {location} since changes conflict with upstream";
+                                    Status += $"Reverted to Default Checkout on {location} since changes conflict with upstream{Environment.NewLine}";
                                     break;
                                 case StashApplyStatus.NotFound:
-                                    Status += $"Stash not found for {location}";
+                                    Status += $"Stash not found for {location}{Environment.NewLine}";
                                     break;
                                 case StashApplyStatus.UncommittedChanges:
-                                    Status += $"There are uncommited changes in {location}";
+                                    Status += $"There are uncommited changes in {location}{Environment.NewLine}";
                                     break;
                             }
                         }
                     }
                 }
+            }
+            var dir = new DirectoryInfo(location);
+            foreach (var file in dir.EnumerateDirectories("_git2*"))
+            {
+                file.Delete();
             }
             //if (location.Equals($@".\{SelectedConfig.Name}"))
             //{
@@ -570,7 +598,7 @@ namespace BaseStationInstaller.ViewModels
         private void GotCode(RepositoryOperationContext context)
         {
             //CompileSketch();
-            Status += $"{SelectedConfig.DisplayName} Code obtained from Repository";
+            Status += $"{SelectedConfig.DisplayName} Code obtained from Repository{Environment.NewLine}";
         }
 
         private void Client_DownloadProgressChanged(object sender, DownloadProgressChangedEventArgs e)
