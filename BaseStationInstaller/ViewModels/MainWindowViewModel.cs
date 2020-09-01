@@ -232,8 +232,8 @@ namespace BaseStationInstaller.ViewModels
         /// <summary>
         /// List of comports detected by windows
         /// </summary>
-        private ObservableCollection<string> _availableComPorts;
-        public ObservableCollection<string> AvailableComPorts
+        private ObservableCollection<Tuple<string, string>> _availableComPorts;
+        public ObservableCollection<Tuple<string,string>> AvailableComPorts
         {
             get => _availableComPorts;
 
@@ -275,9 +275,9 @@ namespace BaseStationInstaller.ViewModels
             set => this.RaiseAndSetIfChanged(ref _selectedMotorShield, value);
         }
 
-        private string _selectedComPort;
+        private Tuple<string, string> _selectedComPort;
 
-        public string SelectedComPort
+        public Tuple<string,string> SelectedComPort
         {
             get => _selectedComPort;
 
@@ -479,6 +479,7 @@ namespace BaseStationInstaller.ViewModels
                     config[17] = $"#define MOTOR_SHIELD_TYPE   {(int)SelectedMotorShield.ShieldType}";
                     break;
                 case "CommandStation-DCC":
+                    config[26] = "//#define CONFIG_ARDUINO_MOTOR_SHIELD";
                     switch (SelectedMotorShield.ShieldType)
                     {
                         case MotorShieldType.Arduino:
@@ -512,7 +513,7 @@ namespace BaseStationInstaller.ViewModels
             Thread.Sleep(5000);
             Status += $"Uploading to {SelectedComPort}";
 
-            helper.UploadSketch(SelectedBoard.FQBN, SelectedComPort, $@"{SelectedConfig.Name}/{SelectedConfig.InputFileLocation}");
+            helper.UploadSketch(SelectedBoard.FQBN, SelectedComPort.Item1, $@"{SelectedConfig.Name}/{SelectedConfig.InputFileLocation}");
             
         }
 

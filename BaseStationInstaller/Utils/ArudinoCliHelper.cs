@@ -3,6 +3,7 @@ using BaseStationInstaller.Models;
 using BaseStationInstaller.ViewModels;
 using Cc.Arduino.Cli.Commands;
 using DynamicData;
+using DynamicData.Kernel;
 using Grpc.Core;
 using Grpc.Net.Client;
 using ReactiveUI;
@@ -11,6 +12,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.IO;
+using System.IO.Ports;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading;
@@ -51,7 +53,7 @@ namespace BaseStationInstaller.Utils
         public async Task<bool> Init()
         {
             mainWindowView.Status += "Starting arduino cli please wait";
-           
+
             mainWindowView.Busy = true;
             mainWindowView.RefreshingPorts = true;
             int count = 0;
@@ -257,7 +259,7 @@ namespace BaseStationInstaller.Utils
 
             mainWindowView.Busy = true;
             mainWindowView.RefreshingPorts = true;
-            mainWindowView.AvailableComPorts = new ObservableCollection<string>();
+            mainWindowView.AvailableComPorts = new ObservableCollection<Tuple<string, string>>();
             BoardListResp boards = client.BoardList(new BoardListReq { Instance = instance });
             foreach (DetectedPort port in boards.Ports)
             {
@@ -265,20 +267,27 @@ namespace BaseStationInstaller.Utils
                 {
 
                     mainWindowView.Status += $"Detected a {port.Boards[0].Name} on port {port.Address}{Environment.NewLine}";
-                    Dispatcher.UIThread.InvokeAsync(() =>
-                    {
-                        mainWindowView.AvailableComPorts.Add(port.Address);
-                    });
+                    await Dispatcher.UIThread.InvokeAsync(() =>
+                     {
+                         mainWindowView.AvailableComPorts.Add(new Tuple<string, string>(port.Address, $"{port.Boards[0].Name}"));
+
+                     });
                     Thread.Sleep(1000);
 
-                    if (String.IsNullOrEmpty(mainWindowView.SelectedComPort))
-                    {
-                        mainWindowView.SelectedBoard = mainWindowView.SelectedConfig.SupportedBoards.Find((b) => b.FQBN == port.Boards[0].FQBN);
-                        mainWindowView.SelectedComPort = port.Address;
-                    }
-
+                    //if (String.IsNullOrEmpty(mainWindowView.SelectedComPort.Item1))
+                    //{
+                    //    mainWindowView.SelectedBoard = mainWindowView.SelectedConfig.SupportedBoards.Find((b) => b.FQBN == port.Boards[0].FQBN);
+                    //}
                 }
             }
+            await Dispatcher.UIThread.InvokeAsync(() =>
+                     {
+                         foreach (string avail in SerialPort.GetPortNames())
+                             if (!mainWindowView.AvailableComPorts.AsList().Exists(x => x.Item1 == avail))
+                             {
+                                 mainWindowView.AvailableComPorts.Add(new Tuple<string, string>(avail, $"Unknown Board"));
+                             }
+                     });
             mainWindowView.Busy = false;
             mainWindowView.RefreshingPorts = false;
         }

@@ -38,36 +38,36 @@ namespace BaseStationInstaller.Models
     {
         public static List<Config> BaseStationDefaults = new List<Config>()
         {
-            {
-                new Config
-                {
-                    DisplayName = "Base Station Extended",
-                    Name = "BaseStationEX",
-                    Git = "https://github.com/DCC-EX/BaseStation-EX.git",
-                    ConfigFile = $@"DCCpp_EX/DCCppEX/Config.h",
-                    InputFileLocation = "DCCpp_EX/DCCppEX",
-                   Libraries = new List<Library>(),
+            //{
+            //    new Config
+            //    {
+            //        DisplayName = "Base Station Extended",
+            //        Name = "BaseStationEX",
+            //        Git = "https://github.com/DCC-EX/BaseStation-EX.git",
+            //        ConfigFile = $@"DCCpp_EX/DCCppEX/Config.h",
+            //        InputFileLocation = "DCCpp_EX/DCCppEX",
+            //       Libraries = new List<Library>(),
                    
-                   AllowAdvanced = true,
-                    SupportedBoards = new List<Board>()
-                    {
-                        new Board("Uno", "arduino:avr:uno", new List<Platform>()
-                   {
-                       new Platform("avr", "arduino")
-                   }),
-                        new Board("Mega", "arduino:avr:mega",  new List<Platform>()
-                   {
-                       new Platform("avr", "arduino")
-                   }),
-                    },
-                    SupportedMotorShields = new List<MotorShield>()
-                    {
-                        new MotorShield("Arduino Motor Shield", MotorShieldType.Arduino),
-                        new MotorShield("Pololu MC33926 Motor Shield", MotorShieldType.Pololu),
-                        new MotorShield("BTS7960B Motor Shield", MotorShieldType.BTS7960B),
-                    }
-                }
-            },
+            //       AllowAdvanced = true,
+            //        SupportedBoards = new List<Board>()
+            //        {
+            //            new Board("Uno", "arduino:avr:uno", new List<Platform>()
+            //       {
+            //           new Platform("avr", "arduino")
+            //       }),
+            //            new Board("Mega", "arduino:avr:mega",  new List<Platform>()
+            //       {
+            //           new Platform("avr", "arduino")
+            //       }),
+            //        },
+            //        SupportedMotorShields = new List<MotorShield>()
+            //        {
+            //            new MotorShield("Arduino Motor Shield", MotorShieldType.Arduino),
+            //            new MotorShield("Pololu MC33926 Motor Shield", MotorShieldType.Pololu),
+            //            new MotorShield("BTS7960B Motor Shield", MotorShieldType.BTS7960B),
+            //        }
+            //    }
+            //},
             {
                 new Config
                 {
@@ -123,12 +123,13 @@ namespace BaseStationInstaller.Models
                        new Platform("avr", "arduino"),
                        
                    }),
-                        new Board("SAM21", /*ArduinoModel.Mega2560,*/ "SparkFun:samd", new List<Platform>()
+                        new Board("SAMD21", /*ArduinoModel.Mega2560,*/ "SparkFun:samd", new List<Platform>()
                    {
                        new Platform("avr", "arduino"),
                        new Platform("samd", "arduino"),
                        new Platform("samd", "SparkFun")
                    }),
+
                     },
                     SupportedMotorShields = new List<MotorShield>()
                     {
