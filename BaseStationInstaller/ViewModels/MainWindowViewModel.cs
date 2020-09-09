@@ -507,13 +507,31 @@ namespace BaseStationInstaller.ViewModels
             {
                 file.Delete();
             }
-            helper.ArduinoComplieSketch(SelectedBoard.FQBN, $@"./{SelectedConfig.Name}/{SelectedConfig.InputFileLocation}");
+            bool compSucc = await helper.ArduinoComplieSketch(SelectedBoard.FQBN, $@"./{SelectedConfig.Name}/{SelectedConfig.InputFileLocation}");
+            if (compSucc)
+            {
+                RefreshingPorts = true;
+                Thread.Sleep(5000);
+                Status += $"Uploading to {SelectedComPort}";
 
-            RefreshingPorts = true;
-            Thread.Sleep(5000);
-            Status += $"Uploading to {SelectedComPort}";
-
-            helper.UploadSketch(SelectedBoard.FQBN, SelectedComPort.Item1, $@"{SelectedConfig.Name}/{SelectedConfig.InputFileLocation}");
+                bool upSuccess = await helper.UploadSketch(SelectedBoard.FQBN, SelectedComPort.Item1, $@"{SelectedConfig.Name}/{SelectedConfig.InputFileLocation}");
+                if (upSuccess)
+                {
+                    Status += "Uploaded successfully";
+                    Progress = 100;
+                    Thread.Sleep(1000);
+                    RefreshingPorts = false;
+                    Progress = 0;
+                    Busy = false;
+                }
+            } 
+            else
+            {
+                Status += "Compile failed please double check sketch and try again";
+                RefreshingPorts = false;
+                Progress = 0;
+                Busy = false;
+            }
             
         }
 

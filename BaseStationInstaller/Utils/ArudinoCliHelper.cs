@@ -181,9 +181,10 @@ namespace BaseStationInstaller.Utils
         /// </summary>
         /// <param name="fqbn">Fully qualified board name for Arduino Board</param>
         /// <param name="location">Location of ino/cpp file</param>
-        public async void ArduinoComplieSketch(string fqbn, string location)
+        public async Task<bool> ArduinoComplieSketch(string fqbn, string location)
         {
             AsyncServerStreamingCall<CompileResp> compile = client.Compile(new CompileReq { Instance = instance, Fqbn = fqbn, Verbose = true, SketchPath = $"./{location}" });
+            bool success = false;
             try
             {
                 int count = 0;
@@ -200,19 +201,22 @@ namespace BaseStationInstaller.Utils
                         mainWindowView.Status += $"ERROR: {compile.ResponseStream.Current.ErrStream.ToStringUtf8()}{Environment.NewLine}";
                     }
                 }
+                success = true;
             }
             catch (RpcException e)
             {
                 mainWindowView.Status += $"Failed to compile sketch in {location} got error {e.Status.Detail}{Environment.NewLine}";
             }
+            return success;
         }
         /// <summary>
         /// Attempt to compile and upload Arudino Sketch
         /// </summary>
         /// <param name="fqbn">Fully qualified board name for Arduino Board</param>
         /// <param name="location">Location of ino/cpp file</param>
-        public async void UploadSketch(string fqbn, string port, string location)
+        public async Task<bool> UploadSketch(string fqbn, string port, string location)
         {
+            bool success = false;
             mainWindowView.RefreshingPorts = true;
             AsyncServerStreamingCall<UploadResp> upload = client.Upload(new UploadReq { Instance = instance, Fqbn = fqbn, Port = port, SketchPath = location, Verbose = true, Verify = true });
             try
@@ -240,6 +244,7 @@ namespace BaseStationInstaller.Utils
                 mainWindowView.Progress = 0;
                 mainWindowView.Busy = false;
                 mainWindowView.RefreshingPorts = false;
+                success = true;
             }
             catch (RpcException e)
             {
@@ -248,7 +253,7 @@ namespace BaseStationInstaller.Utils
                 mainWindowView.Busy = false;
                 mainWindowView.RefreshingPorts = false;
             }
-
+            return success;
         }
 
         /// <summary>
