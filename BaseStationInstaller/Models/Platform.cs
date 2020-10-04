@@ -13,6 +13,8 @@ namespace BaseStationInstaller.Models
             Package = plat;
         }
 
+        public Platform() { }
+
         public string Architecture { get; set; }
 
         public string Package { get; set; }

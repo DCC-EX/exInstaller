@@ -7,7 +7,7 @@
         Title="Command Station EX Installer"
         FontFamily="resm:BaseStationInstaller.Assets#Flameco"
         BorderBrush="{DynamicResource ThemeAccentBrush}"
-        Height="450" Width="900">
+        Height="600" Width="1100">
 
   <Design.DataContext>
     <vm:MainWindowViewModel />
@@ -22,39 +22,122 @@
           <ColumnDefinition Width="250"></ColumnDefinition>
           <ColumnDefinition Width="*"></ColumnDefinition>
         </Grid.ColumnDefinitions>
-        <StackPanel>
-          <TextBlock Margin="5">Select Base Station Type</TextBlock>
-          <ComboBox Margin="5" Items="{Binding BaseStations}" Focusable="{Binding !Busy}" SelectedItem="{Binding SelectedConfig}">
-            <ComboBox.ItemTemplate>
-              <DataTemplate>
-                <TextBlock Text="{Binding DisplayName}"  />
-              </DataTemplate>
-            </ComboBox.ItemTemplate>
-          </ComboBox>
-          <!--<TextBlock Margin="5" Style="{DynamicResource MaterialDesignSubtitle2TextBlock}">Select Repo Branch</TextBlock>
+        <ScrollViewer>
+          <StackPanel>
+
+            <TextBlock Margin="5">Select Base Station Type</TextBlock>
+            <ComboBox Margin="5" Items="{Binding BaseStations}" Focusable="{Binding !Busy}"  SelectedItem="{Binding SelectedConfig}">
+              <ComboBox.ItemTemplate>
+                <DataTemplate>
+                  <TextBlock Text="{Binding DisplayName}"  />
+                </DataTemplate>
+              </ComboBox.ItemTemplate>
+            </ComboBox>
+            <!--<TextBlock Margin="5" Style="{DynamicResource MaterialDesignSubtitle2TextBlock}">Select Repo Branch</TextBlock>
                         <ComboBox Margin="5" Style="{DynamicResource MaterialDesignComboBox}" Items="{Binding Branches}" SelectedItem="{Binding SelectedBranch}"></ComboBox>-->
-          <TextBlock Margin="5">Select Board Type</TextBlock>
-          <ComboBox Margin="5" Items="{Binding SelectedSupportedBoards}" Focusable="{Binding !Busy}" SelectedItem="{Binding SelectedBoard}">
-            <ComboBox.ItemTemplate>
-              <DataTemplate>
-                <TextBlock Text="{Binding Name}"  />
-              </DataTemplate>
-            </ComboBox.ItemTemplate>
-          </ComboBox>
-          <TextBlock Margin="5">Select Motor Shield</TextBlock>
-          <ComboBox Margin="5" Items="{Binding SelectedSupportedMotorShields}" Focusable="{Binding !Busy}" SelectedItem="{Binding SelectedMotorShield}">
-            <ComboBox.ItemTemplate>
-              <DataTemplate>
-                <TextBlock Text="{Binding Name}"  />
-              </DataTemplate>
-            </ComboBox.ItemTemplate>
-          </ComboBox>
-          <TextBlock Margin="5">Select COM Port</TextBlock>
-          <ComboBox Margin="5" Items="{Binding AvailableComPorts}" Focusable="{Binding !Refreshing}" SelectedItem="{Binding SelectedComPort}">
-          </ComboBox>
-          <Button Margin="5" Background="{DynamicResource ThemeAccentBrush}" Command="{Binding RefreshComPortButton}" Content="Refresh Ports"></Button>
-          <Button Margin="5" Background="{DynamicResource ThemeAccentBrush}" Command="{Binding CompileUpload}">Compile and Upload</Button>
-        </StackPanel>
+            <TextBlock Margin="5">Select Board Type</TextBlock>
+            <ComboBox Margin="5" Items="{Binding SelectedSupportedBoards}" Focusable="{Binding !Busy}"  SelectedItem="{Binding SelectedBoard}">
+              <ComboBox.ItemTemplate>
+                <DataTemplate>
+                  <TextBlock Text="{Binding Name}"  />
+                </DataTemplate>
+              </ComboBox.ItemTemplate>
+            </ComboBox>
+            <TextBlock Margin="5">Select Motor Shield</TextBlock>
+            <ComboBox Margin="5" Items="{Binding SelectedSupportedMotorShields}" Focusable="{Binding !Busy}"  SelectedItem="{Binding SelectedMotorShield}">
+              <ComboBox.ItemTemplate>
+                <DataTemplate>
+                  <TextBlock Text="{Binding Name}"  />
+                </DataTemplate>
+              </ComboBox.ItemTemplate>
+            </ComboBox>
+            <TextBlock Margin="5">Select COM Port</TextBlock>
+            <ComboBox Margin="5" Items="{Binding AvailableComPorts}" Focusable="{Binding !RefreshingPorts}" SelectedItem="{Binding SelectedComPort}">
+            </ComboBox>
+
+            <StackPanel IsVisible="{Binding EnableAdvanced}" Orientation="Horizontal">
+              <StackPanel  Margin="5">
+                <TextBlock HorizontalAlignment="Center" >Wifi</TextBlock>
+                <CheckBox HorizontalAlignment="Center" IsChecked="{Binding EnableWifi}"></CheckBox>
+              </StackPanel>
+              <StackPanel Margin="5">
+                <TextBlock HorizontalAlignment="Center" >Ethernet</TextBlock>
+                <CheckBox HorizontalAlignment="Center" IsChecked="{Binding EnableEthernet}"></CheckBox>
+              </StackPanel>
+              <StackPanel HorizontalAlignment="Center" Margin="5">
+                <TextBlock >LCD</TextBlock>
+                <CheckBox HorizontalAlignment="Center" IsChecked="{Binding EnableLCD}"></CheckBox>
+              </StackPanel>
+              <StackPanel HorizontalAlignment="Center" Margin="5">
+                <TextBlock >Free Mem Warning</TextBlock>
+                <CheckBox HorizontalAlignment="Center" IsChecked="{Binding EnableMem}"></CheckBox>
+              </StackPanel>
+
+            </StackPanel>
+            <StackPanel IsVisible="{Binding EnableWifi}" Margin="5">
+              <TextBlock >Wifi SSID</TextBlock>
+              <TextBox Text="{Binding SSID}"></TextBox>
+            </StackPanel>
+            <StackPanel IsVisible="{Binding EnableWifi}" Margin="5">
+              <TextBlock >Wifi Password</TextBlock>
+              <TextBox  Text="{Binding WifiPass}"></TextBox>
+            </StackPanel>
+            <StackPanel IsVisible="{Binding EnableNetworking}" Margin="5">
+              <TextBlock>Host Name</TextBlock>
+              <TextBox  Text="{Binding Hostname}"></TextBox>
+            </StackPanel>
+            <StackPanel IsVisible="{Binding EnableNetworking}" Margin="5">
+              <TextBlock >Server Port</TextBlock>
+              <TextBox  Text="{Binding Port}"></TextBox>
+            </StackPanel>
+            <StackPanel IsVisible="{Binding EnableEthernet}" Margin="5">
+              <TextBlock >MAC Address (in Decimal)</TextBlock>
+              <StackPanel HorizontalAlignment="Center" Orientation="Horizontal">
+                <TextBox MaxLength="2" Width="30" Margin="1" Text="{Binding MAC1}"></TextBox>
+                <TextBox MaxLength="2" Width="30" Margin="1" Text="{Binding MAC2}"></TextBox>
+                <TextBox MaxLength="2" Width="30" Margin="1" Text="{Binding MAC3}"></TextBox>
+                <TextBox MaxLength="2" Width="30" Margin="1" Text="{Binding MAC4}"></TextBox>
+                <TextBox MaxLength="2" Width="30" Margin="1" Text="{Binding MAC5}"></TextBox>
+                <TextBox MaxLength="2" Width="30" Margin="1" Text="{Binding MAC6}"></TextBox>
+              </StackPanel>
+            </StackPanel>
+            <StackPanel IsVisible="{Binding EnableNetworking}" Margin="5">
+              <TextBlock >IP Address</TextBlock>
+              <StackPanel HorizontalAlignment="Center" Orientation="Horizontal">
+                <TextBox MaxLength="3" Width="30" Margin="1" Text="{Binding IP1}"></TextBox>
+                <TextBox MaxLength="3" Width="30" Margin="1" Text="{Binding IP2}"></TextBox>
+                <TextBox MaxLength="3" Width="30" Margin="1" Text="{Binding IP3}"></TextBox>
+                <TextBox MaxLength="3" Width="30" Margin="1" Text="{Binding IP4}"></TextBox>
+              </StackPanel>
+            </StackPanel>
+
+            <StackPanel IsVisible="{Binding EnableLCD}" Margin="5">
+              <TextBlock>LCD Interface Type</TextBlock>
+              <ComboBox SelectedIndex="0" SelectedItem="{Binding LCDType}">
+                <ComboBoxItem  Content="LIB_TYPE_PCF8574" />
+                <ComboBoxItem Content="LIB_TYPE_I2C" />
+              </ComboBox>
+            </StackPanel>
+
+            <StackPanel IsVisible="{Binding EnableLCD}" Margin="5">
+              <TextBlock >LCD Address (in Decimal format)</TextBlock>
+              <TextBox MaxLength="2" Width="NaN" Text="{Binding LCDAddress}"></TextBox>
+            </StackPanel>
+
+            <StackPanel IsVisible="{Binding EnableLCD}" Margin="5">
+              <TextBlock >LCD Columns</TextBlock>
+              <TextBox MaxLength="2" Width="NaN" Text="{Binding LCDColumns}"></TextBox>
+            </StackPanel>
+
+            <StackPanel IsVisible="{Binding EnableLCD}" Margin="5">
+              <TextBlock >LCD Lines</TextBlock>
+              <TextBox MaxLength="2" Width="NaN" Text="{Binding LCDLines}"></TextBox>
+            </StackPanel>
+            <Button Margin="5" Background="{DynamicResource ThemeAccentBrush}" Command="{Binding RefreshComPortButton}" Content="Refresh Ports"></Button>
+            <Button Margin="5" Background="{DynamicResource ThemeAccentBrush}" Command="{Binding CompileUpload}">Compile and Upload</Button>
+
+          </StackPanel>
+        </ScrollViewer>
         <TextBox Grid.Column="1" Text="{Binding Status}" TextWrapping="Wrap" CaretIndex="{Binding StatusCaret}" Width="NaN" IsReadOnly="True" Margin="5" />
         <!--<Image  Source="{Binding WiringDiagram}"></Image>-->
       </Grid>

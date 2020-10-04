@@ -15,17 +15,41 @@ using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Diagnostics;
-
+using System.Text.Json;
 
 namespace BaseStationInstaller.ViewModels
 {
     public class MainWindowViewModel : ViewModelBase, IMainWindowViewModel
     {
+
         ArudinoCliHelper helper;
         StreamWriter logWriter;
         Signature sig = new Signature(new Identity("random", "random@random.com"), DateTimeOffset.Now);
         public MainWindowViewModel()
         {
+            EnableNetworking = false;
+            EnableAdvanced = false;
+            EnableLCD = false;
+            EnableEthernet = false;
+            EnableMem = false;
+            EnableNetworking = false;
+            Port = 2560;
+            Hostname = "DCCEX";
+            LCDAddress = 0x27;
+            LCDColumns = 16;
+            LCDLines = 2;
+            MAC1 = 0xde;
+            MAC2 = 0xad;
+            MAC3 = 0xbe;
+            MAC4 = 0xef;
+            MAC5 = 0xfe;
+            MAC6 = 0xef;
+            IP1 = 0;
+            IP2 = 0;
+            IP3 = 0;
+            IP4 = 0;
+            RefreshingPorts = true;
+            Busy = true;
             if (File.Exists("status.log"))
             {
                 if (File.Exists("status.old.log"))
@@ -33,20 +57,36 @@ namespace BaseStationInstaller.ViewModels
                     File.Delete("status.old.log");
                 }
                 File.Move("status.log", "status.old.log");
-               
+
             }
             logWriter = new StreamWriter("status.log");
             Task task = new Task(InitArduinoCLI);
             task.Start();
-            RefreshComPortButton = ReactiveCommand.Create(RefreshComPortsCommand, this.WhenAnyValue(x => x.RefreshingPorts, (refrshing) => {
+            RefreshComPortButton = ReactiveCommand.Create(RefreshComPortsCommand, this.WhenAnyValue(x => x.RefreshingPorts, (refrshing) =>
+            {
                 return !refrshing;
             }).ObserveOn(RxApp.MainThreadScheduler));
             CompileUpload = ReactiveCommand.Create(CompileandUploadCommand, this.WhenAnyValue(x => x.Busy, (busy) =>
             {
+                if (SelectedBoard != null)
+                {
+                    if (EnableNetworking && SelectedBoard.Name == "Uno")
+                    {
+                        return false;
+                    }
+                    else
+                    {
+                        return !busy;
+                    }
+                }
                 return !busy;
             }).ObserveOn(RxApp.MainThreadScheduler));
             this.WhenAnyValue(x => x.SelectedConfig).Subscribe(ProcessConfigChange);
+            this.WhenAnyValue(x => x.SelectedBoard).Subscribe(ProcessBoardChange);
             this.WhenAnyValue(x => x.Status).Subscribe(ProcessStatusChange);
+            this.WhenAnyValue(x => x.EnableEthernet).Subscribe(ProcessEthernetChange);
+            this.WhenAnyValue(x => x.EnableWifi).Subscribe(ProcessWifiChange);
+            
         }
 
         private void ProcessStatusChange(string status)
@@ -59,16 +99,66 @@ namespace BaseStationInstaller.ViewModels
             }
         }
 
+        private void ProcessEthernetChange(bool ether)
+        {
+
+            if (EnableEthernet)
+            {
+                EnableWifi = false;
+            }
+            else
+            {
+                EnableNetworking = false;
+            }
+            if (!EnableNetworking)
+            {
+                EnableNetworking = true;
+            }
+
+        }
+
+        private void ProcessWifiChange(bool wifi)
+        {
+            if (EnableWifi)
+            {
+                EnableEthernet = false;
+            }
+            else
+            {
+                EnableNetworking = false;
+            }
+            if (!EnableNetworking)
+            {
+                EnableNetworking = true;
+            }
+        }
+
 
         private void ProcessConfigChange(Config cfg)
         {
             if (!String.IsNullOrEmpty(SelectedConfig.Name))
             {
                 SelectedSupportedBoards = new ObservableCollection<Board>(SelectedConfig.SupportedBoards);
-                SelectedSupportedMotorShields = new ObservableCollection<MotorShield>(SelectedConfig.SupportedMotorShields);
+                if (SelectedConfig.Name == "CommandStation-EX")
+                {
+                    EnableAdvanced = true;
+                }
+                else
+                {
+                    EnableAdvanced = false;
+                }
+                //SelectedSupportedMotorShields = new ObservableCollection<MotorShield>(SelectedBoard.SupportedMotoShields);
                 GitCode(SelectedConfig.Git, $@"{SelectedConfig.Name}");
                 Task detect = new Task(helper.DetectBoard);
                 detect.Start();
+            }
+        }
+
+        private void ProcessBoardChange(Board board)
+        {
+            if (SelectedBoard != null && !String.IsNullOrEmpty(SelectedBoard.Name))
+            {
+                SelectedSupportedMotorShields = new ObservableCollection<MotorShield>(SelectedBoard.SupportedMotoShields);
             }
         }
 
@@ -175,7 +265,7 @@ namespace BaseStationInstaller.ViewModels
             }
             catch (Exception ex)
             {
-                
+
             }
         }
 
@@ -233,7 +323,7 @@ namespace BaseStationInstaller.ViewModels
         /// List of comports detected by windows
         /// </summary>
         private ObservableCollection<Tuple<string, string>> _availableComPorts;
-        public ObservableCollection<Tuple<string,string>> AvailableComPorts
+        public ObservableCollection<Tuple<string, string>> AvailableComPorts
         {
             get => _availableComPorts;
 
@@ -277,7 +367,7 @@ namespace BaseStationInstaller.ViewModels
 
         private Tuple<string, string> _selectedComPort;
 
-        public Tuple<string,string> SelectedComPort
+        public Tuple<string, string> SelectedComPort
         {
             get => _selectedComPort;
 
@@ -314,6 +404,158 @@ namespace BaseStationInstaller.ViewModels
         //    }
         //}
 
+        private string _ssid;
+        public string SSID
+        {
+            get => _ssid;
+
+            set => this.RaiseAndSetIfChanged(ref _ssid, value);
+        }
+
+        private string _wifipass;
+        public string WifiPass
+        {
+            get => _wifipass;
+
+            set => this.RaiseAndSetIfChanged(ref _wifipass, value);
+        }
+
+
+        private string _hostname;
+        public string Hostname
+        {
+            get => _hostname;
+
+            set => this.RaiseAndSetIfChanged(ref _hostname, value);
+        }
+
+
+        private int _port;
+        public int Port
+        {
+            get => _port;
+
+            set => this.RaiseAndSetIfChanged(ref _port, value);
+        }
+
+
+        private byte _mac1;
+        public byte MAC1
+        {
+            get => _mac1;
+
+            set => this.RaiseAndSetIfChanged(ref _mac1, value);
+        }
+
+        private byte _mac2;
+        public byte MAC2
+        {
+            get => _mac2;
+
+            set => this.RaiseAndSetIfChanged(ref _mac2, value);
+        }
+
+        private byte _mac3;
+        public byte MAC3
+        {
+            get => _mac3;
+
+            set => this.RaiseAndSetIfChanged(ref _mac3, value);
+        }
+
+        private byte _mac4;
+        public byte MAC4
+        {
+            get => _mac4;
+
+            set => this.RaiseAndSetIfChanged(ref _mac4, value);
+        }
+
+        private byte _mac5;
+        public byte MAC5
+        {
+            get => _mac5;
+
+            set => this.RaiseAndSetIfChanged(ref _mac5, value);
+        }
+
+        private byte _mac6;
+        public byte MAC6
+        {
+            get => _mac6;
+
+            set => this.RaiseAndSetIfChanged(ref _mac6, value);
+        }
+
+        private int _ip1;
+        public int IP1
+        {
+            get => _ip1;
+
+            set => this.RaiseAndSetIfChanged(ref _ip1, value);
+        }
+
+        private int _ip2;
+        public int IP2
+        {
+            get => _ip2;
+
+            set => this.RaiseAndSetIfChanged(ref _ip2, value);
+        }
+
+        private int _ip3;
+        public int IP3
+        {
+            get => _ip3;
+
+            set => this.RaiseAndSetIfChanged(ref _ip3, value);
+        }
+
+
+        private int _ip4;
+        public int IP4
+        {
+            get => _ip4;
+
+            set => this.RaiseAndSetIfChanged(ref _ip4, value);
+        }
+
+        private string _lcdtype;
+        public string LCDType
+        {
+            get => _lcdtype;
+
+            set => this.RaiseAndSetIfChanged(ref _lcdtype, value);
+        }
+
+
+        private byte _lcdAddress;
+        public byte LCDAddress
+        {
+            get => _lcdAddress;
+
+            set => this.RaiseAndSetIfChanged(ref _lcdAddress, value);
+        }
+
+        private int _lcdColumns;
+        public int LCDColumns
+        {
+            get => _lcdColumns;
+
+            set => this.RaiseAndSetIfChanged(ref _lcdColumns, value);
+        }
+
+        private int _lcdLines;
+        public int LCDLines
+        {
+            get => _lcdLines;
+
+            set => this.RaiseAndSetIfChanged(ref _lcdLines, value);
+        }
+
+
+
+
         private string _status;
         public string Status
         {
@@ -343,6 +585,66 @@ namespace BaseStationInstaller.ViewModels
         //        //RaiseAndSetIfChanged("WiringDiagram");
         //    }
         //}
+
+        private bool _enableAdvanced;
+
+        public bool EnableAdvanced
+        {
+            get => _enableAdvanced;
+
+            set => this.RaiseAndSetIfChanged(ref _enableAdvanced, value);
+
+        }
+
+        private bool _enableWifi;
+
+        public bool EnableWifi
+        {
+            get => _enableWifi;
+
+            set => this.RaiseAndSetIfChanged(ref _enableWifi, value);
+
+        }
+
+        private bool _enableEthernet;
+
+        public bool EnableEthernet
+        {
+            get => _enableEthernet;
+
+            set => this.RaiseAndSetIfChanged(ref _enableEthernet, value);
+
+        }
+
+        private bool _enableLCD;
+
+        public bool EnableLCD
+        {
+            get => _enableLCD;
+
+            set => this.RaiseAndSetIfChanged(ref _enableLCD, value);
+
+        }
+
+        private bool _enableMem;
+
+        public bool EnableMem
+        {
+            get => _enableMem;
+
+            set => this.RaiseAndSetIfChanged(ref _enableMem, value);
+
+        }
+
+        private bool _enableNetworking;
+
+        public bool EnableNetworking
+        {
+            get => _enableNetworking;
+
+            set => this.RaiseAndSetIfChanged(ref _enableNetworking, value);
+
+        }
 
         private bool _refreshingPorts;
 
@@ -419,7 +721,8 @@ namespace BaseStationInstaller.ViewModels
             {
                 Task task = new Task(CompileSketch);
                 task.Start();
-            } else
+            }
+            else
             {
                 RefreshingPorts = false;
                 Busy = false;
@@ -433,7 +736,7 @@ namespace BaseStationInstaller.ViewModels
         {
             Status += $"Starting Dependency Downloads {Environment.NewLine}";
             Thread.Sleep(500);
-            foreach(Platform plat in SelectedBoard.Platforms)
+            foreach (Platform plat in SelectedBoard.Platforms)
             {
                 bool success = await helper.GetBoard(plat.Architecture, plat.Package);
                 if (!success)
@@ -468,34 +771,60 @@ namespace BaseStationInstaller.ViewModels
             RefreshingPorts = true;
             Status += $"Changing MotorShield options{Environment.NewLine}";
             Progress = 1;
-            string[] config = File.ReadAllLines($@"{SelectedConfig.Name}/{SelectedConfig.ConfigFile}");
+
             Progress = 2;
+            string[] config = new string[0];
             switch (SelectedConfig.Name)
             {
                 case "BaseStationClassic":
-                    config[16] = $"#define MOTOR_SHIELD_TYPE   {(int)SelectedMotorShield.ShieldType}";
-                    break;
-                case "BaseStationEx":
-                    config[17] = $"#define MOTOR_SHIELD_TYPE   {(int)SelectedMotorShield.ShieldType}";
-                    break;
-                case "CommandStation-DCC":
-                    config[26] = "//#define CONFIG_ARDUINO_MOTOR_SHIELD";
-                    switch (SelectedMotorShield.ShieldType)
                     {
-                        case MotorShieldType.Arduino:
-                            config[25] = "#define CONFIG_ARDUINO_MOTOR_SHIELD";
-                            break;
-                        case MotorShieldType.Pololu:
-                            config[25] = "#define CONFIG_POLOLU_MOTOR_SHIELD";
-                            break;
-                        case MotorShieldType.FireBox_MK1:
-                            config[25] = "#define CONFIG_WSM_FIREBOX_MK1";
-                            break;
-                        case MotorShieldType.FireBox_MK1S:
-                            config[25] = "#define CONFIG_WSM_FIREBOX_MK1S";
-                            break;
+                        config = File.ReadAllLines($@"{SelectedConfig.Name}/{SelectedConfig.ConfigFile}");
+                        config[16] = $"#define MOTOR_SHIELD_TYPE   {(int)SelectedMotorShield.ShieldType}";
+                        break;
                     }
-                    break;
+                case "CommandStation-EX":
+                    {
+                        List<string> configlist = new List<string>();
+                        configlist.Add($"#define MOTOR_SHIELD_TYPE {MotorShield.ExMotoShieldDictonary[SelectedMotorShield.ShieldType]}");
+                        configlist.Add($"#define ENABLE_ETHERNET {EnableEthernet.ToString().ToLower()}");
+                        if (EnableEthernet)
+                        {
+                            configlist.Add($"#define MAC_ADDRESS {{0x{MAC1:X}, 0x{MAC2:X}, 0x{MAC3:X}, 0x{MAC4:X}, 0x{MAC5:X}, 0x{MAC6:X} }}");
+                        }
+                        configlist.Add($"#define ENABLE_WIFI {EnableWifi.ToString().ToLower()}");
+                        if (EnableWifi)
+                        {
+                            configlist.Add($"#define WIFI_SSID {MotorShield.ExMotoShieldDictonary[SelectedMotorShield.ShieldType]}");
+                            configlist.Add($"#define WIFI_PASSWORD {MotorShield.ExMotoShieldDictonary[SelectedMotorShield.ShieldType]}");
+                        }
+                        if (EnableNetworking)
+                        {
+                            configlist.Add($"#define IP_PORT {{{IP1}, {IP2}, {IP3}, {IP4}}}");
+                            configlist.Add($"#define WIFI_HOSTNAME {Hostname}");
+
+                        }
+                        configlist.Add($"#define ENABLE_LCD {EnableLCD.ToString().ToLower()}");
+                        if (EnableLCD)
+                        {
+                            configlist.Add($"#define {LCDType}");
+                            configlist.Add($"#define LCD_ADDRESS 0x{LCDAddress:x}");
+                            configlist.Add($"#define LCD_COLUMNS {LCDColumns}");
+                            configlist.Add($"#define LCD_LINES {LCDLines}");
+                        }
+                        if (EnableMem)
+                        {
+                            configlist.Add($"#define ENABLE_FREE_MEM_WARNING {EnableMem.ToString().ToLower()}");
+                        }
+                        config = configlist.ToArray();
+                        break;
+                    }
+            }
+            if (config.Length == 0)
+            {
+                Busy = false;
+                RefreshingPorts = false;
+                Status += $"We could not find proper {SelectedConfig.ConfigFile} for your selections please try again";
+                return;
             }
             File.WriteAllLines($@"{SelectedConfig.Name}/{SelectedConfig.ConfigFile}", config);
             Thread.Sleep(1000);
@@ -524,7 +853,7 @@ namespace BaseStationInstaller.ViewModels
                     Progress = 0;
                     Busy = false;
                 }
-            } 
+            }
             else
             {
                 Status += "Compile failed please double check sketch and try again";
@@ -532,7 +861,7 @@ namespace BaseStationInstaller.ViewModels
                 Progress = 0;
                 Busy = false;
             }
-            
+
         }
 
         private async Task GitCode(string url, string location)

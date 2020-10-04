@@ -57,7 +57,7 @@ namespace BaseStationInstaller.Utils
             mainWindowView.Busy = true;
             mainWindowView.RefreshingPorts = true;
             int count = 0;
-            while (count < 20)
+            while (count < 10)
             {
                 mainWindowView.Status += ".";
                 Thread.Sleep(1000);
