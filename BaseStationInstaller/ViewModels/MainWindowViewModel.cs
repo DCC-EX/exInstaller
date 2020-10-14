@@ -66,9 +66,45 @@ namespace BaseStationInstaller.ViewModels
             logWriter = new StreamWriter("status.log");
             Task task = new Task(InitArduinoCLI);
             task.Start();
-            RefreshComPortButton = ReactiveCommand.Create(RefreshComPortsCommand, Observable.Return(!RefreshingPorts).ObserveOn(RxApp.MainThreadScheduler));
-            CompileUpload = ReactiveCommand.CreateFromTask(CompileandUploadCommand, Observable.Return((!Busy /*|| (SelectedBoard != null || !string.IsNullOrEmpty(SelectedBoard.Name))*/ || (EnableOLED || EnableNetworking && (SelectedBoard != null && SelectedBoard.Name.Equals("Uno"))))
-            ).ObserveOn(RxApp.MainThreadScheduler));
+            RefreshComPortButton = ReactiveCommand.Create(RefreshComPortsCommand, this.WhenAnyValue(x => x.RefreshingPorts, (refrshing) => {
+                return !refrshing;
+            }).ObserveOn(RxApp.MainThreadScheduler));
+            CompileUpload = ReactiveCommand.Create(CompileandUploadCommand, this.WhenAnyValue(
+                x => x.Busy, 
+                x => x.SelectedBoard, 
+                x => x.SelectedMotorShield, 
+                x => x.SelectedComPort,
+                x => x.EnableLCD,
+                x => x.EnableOLED,
+                x => x.EnableNetworking,
+                (busy, board, sheild, comport, lcd, oled, network) =>
+            {
+                if (board != null)
+                {
+                    if (sheild != null)
+                    {
+                        if (comport != null)
+                        {
+                            if (board.Name.Equals("Uno"))
+                            {
+                                if (oled || network)
+                                {
+                                    return false;
+                                }
+                                else
+                                {
+                                    return !busy;
+                                }
+                            } 
+                            else
+                            {
+                                return !busy;
+                            }
+                        }
+                    }
+                }
+                return false;
+            }).ObserveOn(RxApp.MainThreadScheduler));
             this.WhenAnyValue(x => x.SelectedConfig).Subscribe(ProcessConfigChange);
             this.WhenAnyValue(x => x.SelectedBoard).Subscribe(ProcessBoardChange);
             this.WhenAnyValue(x => x.Status).Subscribe(ProcessStatusChange);
@@ -111,15 +147,16 @@ namespace BaseStationInstaller.ViewModels
             if (ether)
             {
                 EnableWifi = false;
+                if (!EnableNetworking)
+                {
+                    EnableNetworking = true;
+                }
             }
             else
             {
                 EnableNetworking = false;
             }
-            if (!EnableNetworking)
-            {
-                EnableNetworking = true;
-            }
+            
 
         }
 
@@ -128,15 +165,16 @@ namespace BaseStationInstaller.ViewModels
             if (EnableWifi)
             {
                 EnableEthernet = false;
+                if (!EnableNetworking)
+                {
+                    EnableNetworking = true;
+                }
             }
             else
             {
                 EnableNetworking = false;
             }
-            if (!EnableNetworking)
-            {
-                EnableNetworking = true;
-            }
+           
         }
 
 
@@ -722,7 +760,7 @@ namespace BaseStationInstaller.ViewModels
         }
 
 
-        async Task CompileandUploadCommand()
+        async void CompileandUploadCommand()
         {
             ProcessCompileUpload();
         }
