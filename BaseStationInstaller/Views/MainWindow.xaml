@@ -19,14 +19,14 @@
       </DockPanel>
       <Grid DockPanel.Dock="Top" Margin="5">
         <Grid.ColumnDefinitions>
-          <ColumnDefinition Width="250"></ColumnDefinition>
+          <ColumnDefinition Width="300"></ColumnDefinition>
           <ColumnDefinition Width="*"></ColumnDefinition>
         </Grid.ColumnDefinitions>
         <ScrollViewer>
           <StackPanel>
 
             <TextBlock Margin="5">Select Base Station Type</TextBlock>
-            <ComboBox Margin="5" Items="{Binding BaseStations}" Focusable="{Binding !Busy}"  SelectedItem="{Binding SelectedConfig}">
+            <ComboBox Margin="5" Items="{Binding BaseStations}"   SelectedItem="{Binding SelectedConfig}">
               <ComboBox.ItemTemplate>
                 <DataTemplate>
                   <TextBlock Text="{Binding DisplayName}"  />
@@ -36,7 +36,7 @@
             <!--<TextBlock Margin="5" Style="{DynamicResource MaterialDesignSubtitle2TextBlock}">Select Repo Branch</TextBlock>
                         <ComboBox Margin="5" Style="{DynamicResource MaterialDesignComboBox}" Items="{Binding Branches}" SelectedItem="{Binding SelectedBranch}"></ComboBox>-->
             <TextBlock Margin="5">Select Board Type</TextBlock>
-            <ComboBox Margin="5" Items="{Binding SelectedSupportedBoards}" Focusable="{Binding !Busy}"  SelectedItem="{Binding SelectedBoard}">
+            <ComboBox Margin="5" Items="{Binding SelectedSupportedBoards}" SelectedItem="{Binding SelectedBoard}">
               <ComboBox.ItemTemplate>
                 <DataTemplate>
                   <TextBlock Text="{Binding Name}"  />
@@ -44,7 +44,7 @@
               </ComboBox.ItemTemplate>
             </ComboBox>
             <TextBlock Margin="5">Select Motor Shield</TextBlock>
-            <ComboBox Margin="5" Items="{Binding SelectedSupportedMotorShields}" Focusable="{Binding !Busy}"  SelectedItem="{Binding SelectedMotorShield}">
+            <ComboBox Margin="5" Items="{Binding SelectedSupportedMotorShields}" SelectedItem="{Binding SelectedMotorShield}">
               <ComboBox.ItemTemplate>
                 <DataTemplate>
                   <TextBlock Text="{Binding Name}"  />
@@ -52,7 +52,7 @@
               </ComboBox.ItemTemplate>
             </ComboBox>
             <TextBlock Margin="5">Select COM Port</TextBlock>
-            <ComboBox Margin="5" Items="{Binding AvailableComPorts}" Focusable="{Binding !RefreshingPorts}" SelectedItem="{Binding SelectedComPort}">
+            <ComboBox Margin="5" Items="{Binding AvailableComPorts}" SelectedItem="{Binding SelectedComPort}">
             </ComboBox>
 
             <StackPanel IsVisible="{Binding EnableAdvanced}" Orientation="Horizontal">
@@ -61,12 +61,16 @@
                 <CheckBox HorizontalAlignment="Center" IsChecked="{Binding EnableWifi}"></CheckBox>
               </StackPanel>
               <StackPanel Margin="5">
-                <TextBlock HorizontalAlignment="Center" >Ethernet</TextBlock>
+                <TextBlock HorizontalAlignment="Center">Ethernet</TextBlock>
                 <CheckBox HorizontalAlignment="Center" IsChecked="{Binding EnableEthernet}"></CheckBox>
               </StackPanel>
               <StackPanel HorizontalAlignment="Center" Margin="5">
                 <TextBlock >LCD</TextBlock>
                 <CheckBox HorizontalAlignment="Center" IsChecked="{Binding EnableLCD}"></CheckBox>
+              </StackPanel>
+              <StackPanel HorizontalAlignment="Center" Margin="5">
+                <TextBlock >OLED</TextBlock>
+                <CheckBox HorizontalAlignment="Center" IsChecked="{Binding EnableOLED}"></CheckBox>
               </StackPanel>
               <StackPanel HorizontalAlignment="Center" Margin="5">
                 <TextBlock >Free Mem Warning</TextBlock>
@@ -112,14 +116,6 @@
             </StackPanel>
 
             <StackPanel IsVisible="{Binding EnableLCD}" Margin="5">
-              <TextBlock>LCD Interface Type</TextBlock>
-              <ComboBox SelectedIndex="0" SelectedItem="{Binding LCDType}">
-                <ComboBoxItem  Content="LIB_TYPE_PCF8574" />
-                <ComboBoxItem Content="LIB_TYPE_I2C" />
-              </ComboBox>
-            </StackPanel>
-
-            <StackPanel IsVisible="{Binding EnableLCD}" Margin="5">
               <TextBlock >LCD Address (in Decimal format)</TextBlock>
               <TextBox MaxLength="2" Width="NaN" Text="{Binding LCDAddress}"></TextBox>
             </StackPanel>
@@ -133,6 +129,17 @@
               <TextBlock >LCD Lines</TextBlock>
               <TextBox MaxLength="2" Width="NaN" Text="{Binding LCDLines}"></TextBox>
             </StackPanel>
+
+            <StackPanel IsVisible="{Binding EnableOLED}" Margin="5">
+              <TextBlock >OLED Width (in pixels)</TextBlock>
+              <TextBox MaxLength="4" Width="NaN" Text="{Binding OLEDWidth}"></TextBox>
+            </StackPanel>
+
+            <StackPanel IsVisible="{Binding EnableOLED}" Margin="5">
+              <TextBlock >OLED Height (in pixels)</TextBlock>
+              <TextBox MaxLength="4" Width="NaN" Text="{Binding OLEDHeight}"></TextBox>
+            </StackPanel>
+            
             <Button Margin="5" Background="{DynamicResource ThemeAccentBrush}" Command="{Binding RefreshComPortButton}" Content="Refresh Ports"></Button>
             <Button Margin="5" Background="{DynamicResource ThemeAccentBrush}" Command="{Binding CompileUpload}">Compile and Upload</Button>
 

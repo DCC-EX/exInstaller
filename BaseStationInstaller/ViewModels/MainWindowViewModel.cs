@@ -30,7 +30,9 @@ namespace BaseStationInstaller.ViewModels
             EnableNetworking = false;
             EnableAdvanced = false;
             EnableLCD = false;
+            EnableOLED = false;
             EnableEthernet = false;
+            EnableWifi = false;
             EnableMem = false;
             EnableNetworking = false;
             Port = 2560;
@@ -48,6 +50,8 @@ namespace BaseStationInstaller.ViewModels
             IP2 = 0;
             IP3 = 0;
             IP4 = 0;
+            SSID = "Your network name";
+            WifiPass = "Your network passwd";
             RefreshingPorts = true;
             Busy = true;
             if (File.Exists("status.log"))
@@ -62,31 +66,33 @@ namespace BaseStationInstaller.ViewModels
             logWriter = new StreamWriter("status.log");
             Task task = new Task(InitArduinoCLI);
             task.Start();
-            RefreshComPortButton = ReactiveCommand.Create(RefreshComPortsCommand, this.WhenAnyValue(x => x.RefreshingPorts, (refrshing) =>
-            {
-                return !refrshing;
-            }).ObserveOn(RxApp.MainThreadScheduler));
-            CompileUpload = ReactiveCommand.Create(CompileandUploadCommand, this.WhenAnyValue(x => x.Busy, (busy) =>
-            {
-                if (SelectedBoard != null)
-                {
-                    if (EnableNetworking && SelectedBoard.Name == "Uno")
-                    {
-                        return false;
-                    }
-                    else
-                    {
-                        return !busy;
-                    }
-                }
-                return !busy;
-            }).ObserveOn(RxApp.MainThreadScheduler));
+            RefreshComPortButton = ReactiveCommand.Create(RefreshComPortsCommand, Observable.Return(!RefreshingPorts).ObserveOn(RxApp.MainThreadScheduler));
+            CompileUpload = ReactiveCommand.CreateFromTask(CompileandUploadCommand, Observable.Return((!Busy /*|| (SelectedBoard != null || !string.IsNullOrEmpty(SelectedBoard.Name))*/ || (EnableOLED || EnableNetworking && (SelectedBoard != null && SelectedBoard.Name.Equals("Uno"))))
+            ).ObserveOn(RxApp.MainThreadScheduler));
             this.WhenAnyValue(x => x.SelectedConfig).Subscribe(ProcessConfigChange);
             this.WhenAnyValue(x => x.SelectedBoard).Subscribe(ProcessBoardChange);
             this.WhenAnyValue(x => x.Status).Subscribe(ProcessStatusChange);
             this.WhenAnyValue(x => x.EnableEthernet).Subscribe(ProcessEthernetChange);
+            this.WhenAnyValue(x => x.EnableLCD).Subscribe(ProcesLCDChange);
+            this.WhenAnyValue(x => x.EnableOLED).Subscribe(ProcessOLEDChange);
             this.WhenAnyValue(x => x.EnableWifi).Subscribe(ProcessWifiChange);
             
+        }
+
+        private void ProcesLCDChange(bool obj)
+        {
+            if (obj)
+            {
+                EnableOLED = false;
+            }
+        }
+
+        private void ProcessOLEDChange(bool obj)
+        {
+            if (obj)
+            {
+                EnableLCD = false;
+            }
         }
 
         private void ProcessStatusChange(string status)
@@ -102,7 +108,7 @@ namespace BaseStationInstaller.ViewModels
         private void ProcessEthernetChange(bool ether)
         {
 
-            if (EnableEthernet)
+            if (ether)
             {
                 EnableWifi = false;
             }
@@ -553,6 +559,22 @@ namespace BaseStationInstaller.ViewModels
             set => this.RaiseAndSetIfChanged(ref _lcdLines, value);
         }
 
+        private int _oledHeigh;
+        public int OLEDHeight
+        {
+            get => _oledHeigh;
+
+            set => this.RaiseAndSetIfChanged(ref _oledHeigh, value);
+        }
+
+        private int _oledwidth;
+        public int OLEDWidth
+        {
+            get => _oledwidth;
+
+            set => this.RaiseAndSetIfChanged(ref _oledwidth, value);
+        }
+
 
 
 
@@ -626,6 +648,16 @@ namespace BaseStationInstaller.ViewModels
 
         }
 
+        private bool _enableOLED;
+
+        public bool EnableOLED
+        {
+            get => _enableOLED;
+
+            set => this.RaiseAndSetIfChanged(ref _enableOLED, value);
+
+        }
+
         private bool _enableMem;
 
         public bool EnableMem
@@ -690,11 +722,9 @@ namespace BaseStationInstaller.ViewModels
         }
 
 
-        void CompileandUploadCommand()
+        async Task CompileandUploadCommand()
         {
-
-            Task task = new Task(ProcessCompileUpload);
-            task.Start();
+            ProcessCompileUpload();
         }
         public ReactiveCommand<Unit, Unit> CompileUpload
         {
@@ -794,22 +824,23 @@ namespace BaseStationInstaller.ViewModels
                         configlist.Add($"#define ENABLE_WIFI {EnableWifi.ToString().ToLower()}");
                         if (EnableWifi)
                         {
-                            configlist.Add($"#define WIFI_SSID {MotorShield.ExMotoShieldDictonary[SelectedMotorShield.ShieldType]}");
-                            configlist.Add($"#define WIFI_PASSWORD {MotorShield.ExMotoShieldDictonary[SelectedMotorShield.ShieldType]}");
+                            configlist.Add($"#define WIFI_SSID \"{SSID}\"");
+                            configlist.Add($"#define WIFI_PASSWORD \"{WifiPass}\"");
                         }
                         if (EnableNetworking)
                         {
                             configlist.Add($"#define IP_PORT {{{IP1}, {IP2}, {IP3}, {IP4}}}");
-                            configlist.Add($"#define WIFI_HOSTNAME {Hostname}");
+                            configlist.Add($"#define WIFI_HOSTNAME \"{Hostname}\"");
 
                         }
-                        configlist.Add($"#define ENABLE_LCD {EnableLCD.ToString().ToLower()}");
+                        
                         if (EnableLCD)
                         {
-                            configlist.Add($"#define {LCDType}");
-                            configlist.Add($"#define LCD_ADDRESS 0x{LCDAddress:x}");
-                            configlist.Add($"#define LCD_COLUMNS {LCDColumns}");
-                            configlist.Add($"#define LCD_LINES {LCDLines}");
+                            configlist.Add($"#define LCD_DRIVER 0x{LCDAddress:x},{LCDColumns},{LCDLines}");
+                        }
+                        if (EnableOLED)
+                        {
+                            configlist.Add($"#define OLED_DRIVER {OLEDWidth},{OLEDHeight}");
                         }
                         if (EnableMem)
                         {
