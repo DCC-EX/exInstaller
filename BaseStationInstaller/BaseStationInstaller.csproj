@@ -5,13 +5,15 @@
     <RuntimeIdentifiers>win-x86;win-x64;osx-x64;linux-x64;linux-arm;linux-arm64</RuntimeIdentifiers>
     <StartupObject>BaseStationInstaller.Program</StartupObject>
     <AssemblyName>BaseStationInstaller</AssemblyName>
-    <Version>2.1.0</Version>
+    <Version>2.3.0</Version>
     <Authors>Dex's Lab</Authors>
-    <Company>DCC++ Extended</Company>
+    <Company>DCC Extended</Company>
     <PackageProjectUrl>https://dcc-ex.github.io/</PackageProjectUrl>
     <RepositoryUrl>https://github.com/DCC-EX/BaseStation-Installer</RepositoryUrl>
     <PackageIcon>dcc-ex-logo.png</PackageIcon>
     <ApplicationIcon>Assets\dccex-logo.ico</ApplicationIcon>
+    <AssemblyVersion>2.3.0.0</AssemblyVersion>
+    <Product>Command Station Installer</Product>
   </PropertyGroup>
   <ItemGroup>
     <Compile Update="**\*.xaml.cs">
@@ -23,16 +25,16 @@
     <AvaloniaResource Include="Assets\**" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Avalonia" Version="0.9.11" />
-    <PackageReference Include="Avalonia.Desktop" Version="0.9.11" />
-    <PackageReference Include="Avalonia.ReactiveUI" Version="0.9.11" />
-    <PackageReference Include="Google.Protobuf" Version="3.12.3" />
-    <PackageReference Include="Grpc" Version="2.30.0" />
-    <PackageReference Include="Grpc.Core" Version="2.30.0" />
-    <PackageReference Include="Grpc.Core.Api" Version="2.30.0" />
-    <PackageReference Include="Grpc.Net.Client" Version="2.30.0" />
-    <PackageReference Include="Grpc.Net.Common" Version="2.30.0" />
-    <PackageReference Include="Grpc.Tools" Version="2.30.0">
+    <PackageReference Include="Avalonia" Version="0.9.12" />
+    <PackageReference Include="Avalonia.Desktop" Version="0.9.12" />
+    <PackageReference Include="Avalonia.ReactiveUI" Version="0.9.12" />
+    <PackageReference Include="Google.Protobuf" Version="3.13.0" />
+    <PackageReference Include="Grpc" Version="2.32.0" />
+    <PackageReference Include="Grpc.Core" Version="2.32.0" />
+    <PackageReference Include="Grpc.Core.Api" Version="2.32.0" />
+    <PackageReference Include="Grpc.Net.Client" Version="2.32.0" />
+    <PackageReference Include="Grpc.Net.Common" Version="2.32.0" />
+    <PackageReference Include="Grpc.Tools" Version="2.32.0">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
@@ -72,6 +74,9 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Update="arduino-cli.yaml">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="config.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Update="arduino-cli-runtimes/*">
