@@ -23,7 +23,7 @@ namespace BaseStationInstaller.Models
         public string Name { get; set; }
         //public ArduinoModel Platform { get; set; }
 
-        public string FQBN;
+        public string FQBN { get; set; }
 
         public List<Platform> Platforms { get; set; }
 
