@@ -917,7 +917,7 @@ namespace BaseStationInstaller.ViewModels
                 Thread.Sleep(5000);
                 Status += $"Uploading to {SelectedComPort}";
 
-                bool upSuccess = await helper.UploadSketch(SelectedBoard.FQBN, SelectedComPort.Item1, $@"{SelectedConfig.Name}/{SelectedConfig.InputFileLocation}");
+                bool upSuccess = await helper.UploadSketch(SelectedBoard.FQBN, SelectedComPort.Item1, $@"./{SelectedConfig.Name}/{SelectedConfig.InputFileLocation}");
                 if (upSuccess)
                 {
                     Status += "Uploaded successfully";

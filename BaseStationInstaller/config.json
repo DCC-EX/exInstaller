@@ -164,7 +164,7 @@
             }
         ],
         "DisplayName": "CommandStation EX",
-        "InputFileLocation": ".",
+        "InputFileLocation": "",
         "AllowAdvanced": true,
         "ConfigFile": "config.h"
     }
