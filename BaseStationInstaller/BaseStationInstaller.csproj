@@ -5,14 +5,14 @@
     <RuntimeIdentifiers>win-x86;win-x64;osx-x64;linux-x64;linux-arm;linux-arm64</RuntimeIdentifiers>
     <StartupObject>BaseStationInstaller.Program</StartupObject>
     <AssemblyName>BaseStationInstaller</AssemblyName>
-    <Version>2.3.0</Version>
+    <Version>2.3.1</Version>
     <Authors>Dex's Lab</Authors>
     <Company>DCC Extended</Company>
     <PackageProjectUrl>https://dcc-ex.github.io/</PackageProjectUrl>
     <RepositoryUrl>https://github.com/DCC-EX/BaseStation-Installer</RepositoryUrl>
     <PackageIcon>dcc-ex-logo.png</PackageIcon>
     <ApplicationIcon>Assets\dccex-logo.ico</ApplicationIcon>
-    <AssemblyVersion>2.3.0.0</AssemblyVersion>
+    <AssemblyVersion>2.3.1.0</AssemblyVersion>
     <Product>Command Station Installer</Product>
   </PropertyGroup>
   <ItemGroup>

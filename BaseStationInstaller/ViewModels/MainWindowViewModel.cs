@@ -66,13 +66,14 @@ namespace BaseStationInstaller.ViewModels
             logWriter = new StreamWriter("status.log");
             Task task = new Task(InitArduinoCLI);
             task.Start();
-            RefreshComPortButton = ReactiveCommand.Create(RefreshComPortsCommand, this.WhenAnyValue(x => x.RefreshingPorts, (refrshing) => {
+            RefreshComPortButton = ReactiveCommand.Create(RefreshComPortsCommand, this.WhenAnyValue(x => x.RefreshingPorts, (refrshing) =>
+            {
                 return !refrshing;
             }).ObserveOn(RxApp.MainThreadScheduler));
             CompileUpload = ReactiveCommand.Create(CompileandUploadCommand, this.WhenAnyValue(
-                x => x.Busy, 
-                x => x.SelectedBoard, 
-                x => x.SelectedMotorShield, 
+                x => x.Busy,
+                x => x.SelectedBoard,
+                x => x.SelectedMotorShield,
                 x => x.SelectedComPort,
                 x => x.EnableLCD,
                 x => x.EnableOLED,
@@ -95,7 +96,7 @@ namespace BaseStationInstaller.ViewModels
                                 {
                                     return !busy;
                                 }
-                            } 
+                            }
                             else
                             {
                                 return !busy;
@@ -112,7 +113,7 @@ namespace BaseStationInstaller.ViewModels
             this.WhenAnyValue(x => x.EnableLCD).Subscribe(ProcesLCDChange);
             this.WhenAnyValue(x => x.EnableOLED).Subscribe(ProcessOLEDChange);
             this.WhenAnyValue(x => x.EnableWifi).Subscribe(ProcessWifiChange);
-            
+
         }
 
         private void ProcesLCDChange(bool obj)
@@ -156,7 +157,7 @@ namespace BaseStationInstaller.ViewModels
             {
                 EnableNetworking = false;
             }
-            
+
 
         }
 
@@ -174,7 +175,7 @@ namespace BaseStationInstaller.ViewModels
             {
                 EnableNetworking = false;
             }
-           
+
         }
 
 
@@ -867,11 +868,15 @@ namespace BaseStationInstaller.ViewModels
                         }
                         if (EnableNetworking)
                         {
-                            configlist.Add($"#define IP_PORT {{{IP1}, {IP2}, {IP3}, {IP4}}}");
+                            if (IP1 > 0)
+                            {
+                                configlist.Add($"#define IP_ADDRESS {{{IP1}, {IP2}, {IP3}, {IP4}}}");
+                            }
+                            configlist.Add($"#define IP_PORT {Port}");
                             configlist.Add($"#define WIFI_HOSTNAME \"{Hostname}\"");
 
                         }
-                        
+
                         if (EnableLCD)
                         {
                             configlist.Add($"#define LCD_DRIVER 0x{LCDAddress:x},{LCDColumns},{LCDLines}");
