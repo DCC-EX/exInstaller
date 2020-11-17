@@ -352,3 +352,10 @@ MigrationBackup/
 # Ionide (cross platform F# VS Code tools) working folder
 .ionide/
 .vscode/
+/BaseStationInstaller/libraries
+/BaseStationInstaller/inventory.yaml
+/BaseStationInstaller/CommandStation-EX
+/BaseStationInstaller/BaseStationClassic
+/BaseStationInstaller/arduino-cli.exe
+*.tar.gz
+*.zip

@@ -334,7 +334,7 @@ namespace BaseStationInstaller.Utils
             catch (RpcException e)
             {
                 mainWindowView.Busy = false;
-                mainWindowView.Status += $"Failed to download library name{Environment.NewLine}";
+                mainWindowView.Status += $"Failed to download library by name due to {e.Message} attempting to obtain via git{Environment.NewLine}";
                 return false;
             }
 
