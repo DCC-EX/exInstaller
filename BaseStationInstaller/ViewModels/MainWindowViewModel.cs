@@ -858,7 +858,10 @@ namespace BaseStationInstaller.ViewModels
                         configlist.Add($"#define ENABLE_ETHERNET {EnableEthernet.ToString().ToLower()}");
                         if (EnableEthernet)
                         {
-                            configlist.Add($"#define MAC_ADDRESS {{0x{MAC1:X}, 0x{MAC2:X}, 0x{MAC3:X}, 0x{MAC4:X}, 0x{MAC5:X}, 0x{MAC6:X} }}");
+                            if (MAC1 > 0x0 || MAC2 > 0x0)
+                            {
+                                configlist.Add($"#define MAC_ADDRESS {{0x{MAC1:X}, 0x{MAC2:X}, 0x{MAC3:X}, 0x{MAC4:X}, 0x{MAC5:X}, 0x{MAC6:X} }}");
+                            }
                         }
                         configlist.Add($"#define ENABLE_WIFI {EnableWifi.ToString().ToLower()}");
                         if (EnableWifi)

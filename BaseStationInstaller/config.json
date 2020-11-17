@@ -76,14 +76,14 @@
                 "Name": "arduino-libraries/Ethernet",
                 "Repo": "https://github.com/arduino-libraries/Ethernet.git",
                 "Location": "libraries/Ethernet",
-                "LibraryDownloadAvailable": true
-            },
-            {
-                "Name": "mathertel/LiquidCrystal_PCF8574",
-                "Repo": "https://github.com/mathertel/LiquidCrystal_PCF8574.git",
-                "Location": "libraries/LiquidCrystal_PCF8574",
                 "LibraryDownloadAvailable": false
-            }
+            },
+          {
+            "Name": "mathertel/LiquidCrystal_PCF8574",
+            "Repo": "https://github.com/mathertel/LiquidCrystal_PCF8574.git",
+            "Location": "libraries/LiquidCrystal_PCF8574",
+            "LibraryDownloadAvailable": false
+          }
         ],
         "SupportedBoards": [
             {
