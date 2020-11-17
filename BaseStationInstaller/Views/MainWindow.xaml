@@ -4,7 +4,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         mc:Ignorable="d" x:Class="BaseStationInstaller.Views.MainWindow"
         Icon="/Assets/dccex-logo.ico"
-        Title="Command Station EX Installer"
+        Title="exInstaller"
         FontFamily="resm:BaseStationInstaller.Assets#Flameco"
         BorderBrush="{DynamicResource ThemeAccentBrush}"
         Height="600" Width="1100">
