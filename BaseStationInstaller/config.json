@@ -78,12 +78,36 @@
                 "Location": "libraries/Ethernet",
                 "LibraryDownloadAvailable": false
             },
-          {
-            "Name": "mathertel/LiquidCrystal_PCF8574",
-            "Repo": "https://github.com/mathertel/LiquidCrystal_PCF8574.git",
-            "Location": "libraries/LiquidCrystal_PCF8574",
-            "LibraryDownloadAvailable": false
-          }
+            {
+                "Name": "mathertel/LiquidCrystal_PCF8574",
+                "Repo": "https://github.com/mathertel/LiquidCrystal_PCF8574.git",
+                "Location": "libraries/LiquidCrystal_PCF8574",
+                "LibraryDownloadAvailable": false
+            },
+            {
+                "Name": "johnrickman/LiquidCrystal_I2C",
+                "Repo": "https://github.com/johnrickman/LiquidCrystal_I2C.git",
+                "Location": "libraries/LiquidCrystal_I2C",
+                "LibraryDownloadAvailable": false
+            },
+            {
+                "Name": "Adafruit BusIO",
+                "Repo": "https://github.com/adafruit/Adafruit_BusIO.git",
+                "Location": "libraries/Adafruit_BusIO",
+                "LibraryDownloadAvailable": false
+            },
+            {
+                "Name": "Adafruit SSD1306",
+                "Repo": "https://github.com/adafruit/Adafruit_SSD1306.git",
+                "Location": "libraries/Adafruit_SSD1306",
+                "LibraryDownloadAvailable": false
+            },
+            {
+                "Name": "Adafruit GFX Library",
+                "Repo": "https://github.com/adafruit/Adafruit-GFX-Library.git",
+                "Location": "libraries/Adafruit-GFX-Library",
+                "LibraryDownloadAvailable": false
+            }
         ],
         "SupportedBoards": [
             {
