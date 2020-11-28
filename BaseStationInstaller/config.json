@@ -1,56 +1,5 @@
 [
     {
-        "Name": "BaseStationClassic",
-        "Git": "https://github.com/DCC-EX/BaseStation-Classic.git",
-        "Libraries": [],
-        "SupportedBoards": [
-            {
-                "Name": "Uno",
-                "FQBN": "arduino:avr:uno",
-                "Platforms": [
-                    {
-                        "Architecture": "avr",
-                        "Package": "arduino"
-                    }
-                ],
-                "SupportedMotoShields": [
-                    {
-                        "Name": "Arduino Motor Shield",
-                        "ShieldType": 0
-                    },
-                    {
-                        "Name": "Pololu MC33926 Motor Shield",
-                        "ShieldType": 1
-                    }
-                ]
-            },
-            {
-                "Name": "Mega",
-                "FQBN": "arduino:avr:mega",
-                "Platforms": [
-                    {
-                        "Architecture": "avr",
-                        "Package": "arduino"
-                    }
-                ],
-                "SupportedMotoShields": [
-                    {
-                        "Name": "Arduino Motor Shield",
-                        "ShieldType": 0
-                    },
-                    {
-                        "Name": "Pololu MC33926 Motor Shield",
-                        "ShieldType": 1
-                    }
-                ]
-            }
-        ],
-        "DisplayName": "Base Station Classic",
-        "InputFileLocation": "DCCpp",
-        "AllowAdvanced": false,
-        "ConfigFile": "DCCpp/Config.h"
-    },
-    {
         "Name": "CommandStation-EX",
         "Git": "https://github.com/DCC-EX/CommandStation-EX.git",
         "Libraries": [
@@ -111,8 +60,8 @@
         ],
         "SupportedBoards": [
             {
-                "Name": "Uno",
-                "FQBN": "arduino:avr:uno",
+                "Name": "Mega",
+                "FQBN": "arduino:avr:mega",
                 "Platforms": [
                     {
                         "Architecture": "avr",
@@ -131,8 +80,8 @@
                 ]
             },
             {
-                "Name": "Mega",
-                "FQBN": "arduino:avr:mega",
+                "Name": "Uno",
+                "FQBN": "arduino:avr:uno",
                 "Platforms": [
                     {
                         "Architecture": "avr",
@@ -191,5 +140,56 @@
         "InputFileLocation": "",
         "AllowAdvanced": true,
         "ConfigFile": "config.h"
+    },
+    {
+        "Name": "BaseStationClassic",
+        "Git": "https://github.com/DCC-EX/BaseStation-Classic.git",
+        "Libraries": [],
+        "SupportedBoards": [
+            {
+                "Name": "Uno",
+                "FQBN": "arduino:avr:uno",
+                "Platforms": [
+                    {
+                        "Architecture": "avr",
+                        "Package": "arduino"
+                    }
+                ],
+                "SupportedMotoShields": [
+                    {
+                        "Name": "Arduino Motor Shield",
+                        "ShieldType": 0
+                    },
+                    {
+                        "Name": "Pololu MC33926 Motor Shield",
+                        "ShieldType": 1
+                    }
+                ]
+            },
+            {
+                "Name": "Mega",
+                "FQBN": "arduino:avr:mega",
+                "Platforms": [
+                    {
+                        "Architecture": "avr",
+                        "Package": "arduino"
+                    }
+                ],
+                "SupportedMotoShields": [
+                    {
+                        "Name": "Arduino Motor Shield",
+                        "ShieldType": 0
+                    },
+                    {
+                        "Name": "Pololu MC33926 Motor Shield",
+                        "ShieldType": 1
+                    }
+                ]
+            }
+        ],
+        "DisplayName": "Base Station Classic",
+        "InputFileLocation": "DCCpp",
+        "AllowAdvanced": false,
+        "ConfigFile": "DCCpp/Config.h"
     }
 ]
