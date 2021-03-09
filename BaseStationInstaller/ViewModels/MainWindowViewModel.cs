@@ -853,46 +853,70 @@ namespace BaseStationInstaller.ViewModels
                     }
                 case "CommandStation-EX":
                     {
-                        List<string> configlist = new List<string>();
-                        configlist.Add($"#define MOTOR_SHIELD_TYPE {MotorShield.ExMotoShieldDictonary[SelectedMotorShield.ShieldType]}");
-                        configlist.Add($"#define ENABLE_ETHERNET {EnableEthernet.ToString().ToLower()}");
-                        if (EnableEthernet)
+                        config = File.ReadAllLines($@"{SelectedConfig.Name}/config.example.h");
+                        for (int i = 0; i < config.Length; i++)
                         {
-                            if (MAC1 > 0x0 || MAC2 > 0x0)
+                            if (config[i].Contains("#define MOTOR_SHIELD_TYPE"))
                             {
-                                configlist.Add($"#define MAC_ADDRESS {{0x{MAC1:X}, 0x{MAC2:X}, 0x{MAC3:X}, 0x{MAC4:X}, 0x{MAC5:X}, 0x{MAC6:X} }}");
+                                config[i] = $"#define MOTOR_SHIELD_TYPE {MotorShield.ExMotoShieldDictonary[SelectedMotorShield.ShieldType]}";
+                            }
+
+                            if (config[i].Contains("#define ENABLE_ETHERNET"))
+                            {
+                                config[i] = $"#define ENABLE_ETHERNET {EnableEthernet.ToString().ToLower()}";
+                            }
+                            if (config[i].Contains("#define MAC_ADDRESS") && EnableEthernet)
+                            {
+                                if (MAC1 > 0x0 || MAC2 > 0x0)
+                                {
+                                    config[i] = $"#define MAC_ADDRESS {{0x{MAC1:X}, 0x{MAC2:X}, 0x{MAC3:X}, 0x{MAC4:X}, 0x{MAC5:X}, 0x{MAC6:X} }}";
+                                }
+                            }
+                            if (config[i].Contains("#define ENABLE_WIFI"))
+                            {
+                                config[i] = $"#define ENABLE_WIFI {EnableWifi.ToString().ToLower()}";
+                            }
+                            if (EnableWifi)
+                            {
+                                if (config[i].Contains("#define WIFI_SSID"))
+                                {
+                                    config[i] = $"#define WIFI_SSID \"{SSID}\"";
+                                }
+                                if (config[i].Contains("#define WIFI_PASSWORD"))
+                                {
+                                    config[i] = $"#define WIFI_PASSWORD \"{WifiPass}\"";
+                                }
+                            }
+                            if (EnableNetworking)
+                            {
+                                if (config[i].Contains("#define IP_ADDRESS") && IP1 > 0)
+                                {
+                                    config[i] = $"#define IP_ADDRESS {{{IP1}, {IP2}, {IP3}, {IP4}}}";
+                                }
+                                if (config[i].Contains("#define IP_PORT"))
+                                {
+                                    config[i] = $"#define IP_PORT {Port}";
+                                }
+                                if (config[i].Contains("#define WIFI_HOSTNAME"))
+                                {
+                                    config[i] = $"#define WIFI_HOSTNAME \"{Hostname}\"";
+                                }
+
+                            }
+
+                            if (config[i].Contains("#define LCD_DRIVER") && EnableLCD)
+                            {
+                                config[i] = $"#define LCD_DRIVER 0x{LCDAddress:x},{LCDColumns},{LCDLines}";
+                            }
+                            if (config[i].Contains("#define OLED_DRIVER") && EnableOLED)
+                            {
+                                config[i] = $"#define OLED_DRIVER {OLEDWidth},{OLEDHeight}";
+                            }
+                            if (config[i].Contains("#define ENABLE_FREE_MEM_WARNING") && EnableMem)
+                            {
+                                config[i] = $"#define ENABLE_FREE_MEM_WARNING {EnableMem.ToString().ToLower()}";
                             }
                         }
-                        configlist.Add($"#define ENABLE_WIFI {EnableWifi.ToString().ToLower()}");
-                        if (EnableWifi)
-                        {
-                            configlist.Add($"#define WIFI_SSID \"{SSID}\"");
-                            configlist.Add($"#define WIFI_PASSWORD \"{WifiPass}\"");
-                        }
-                        if (EnableNetworking)
-                        {
-                            if (IP1 > 0)
-                            {
-                                configlist.Add($"#define IP_ADDRESS {{{IP1}, {IP2}, {IP3}, {IP4}}}");
-                            }
-                            configlist.Add($"#define IP_PORT {Port}");
-                            configlist.Add($"#define WIFI_HOSTNAME \"{Hostname}\"");
-
-                        }
-
-                        if (EnableLCD)
-                        {
-                            configlist.Add($"#define LCD_DRIVER 0x{LCDAddress:x},{LCDColumns},{LCDLines}");
-                        }
-                        if (EnableOLED)
-                        {
-                            configlist.Add($"#define OLED_DRIVER {OLEDWidth},{OLEDHeight}");
-                        }
-                        if (EnableMem)
-                        {
-                            configlist.Add($"#define ENABLE_FREE_MEM_WARNING {EnableMem.ToString().ToLower()}");
-                        }
-                        config = configlist.ToArray();
                         break;
                     }
             }
