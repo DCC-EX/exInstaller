@@ -1,0 +1,26 @@
+﻿<Application xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:local="clr-namespace:exInstaller"
+             x:Class="exInstaller.App">
+    <Application.DataTemplates>
+        <local:ViewLocator/>
+    </Application.DataTemplates>
+
+  <Application.Resources>
+    <Color x:Key="Primary">#FF00A3B9</Color>
+    <Color x:Key="Accent">#FF00353D</Color>
+    <Color x:Key="bgColor">#FF373737</Color>
+    <Color x:Key="fgColor">#FFFFFFFF</Color>
+    <Color x:Key="fgColorLow">#FF6C6C6C</Color>
+    <SolidColorBrush x:Key="ThemeAccentBrush" Color="{DynamicResource Primary}"></SolidColorBrush>
+    <SolidColorBrush x:Key="ThemeAccentBrush2" Color="{DynamicResource Accent}"></SolidColorBrush>
+    <SolidColorBrush x:Key="ThemeBackgroundBrush" Color="{DynamicResource bgColor}"></SolidColorBrush>
+    <SolidColorBrush x:Key="ThemeForegroundBrush" Color="{DynamicResource fgColor}"></SolidColorBrush>
+    <SolidColorBrush x:Key="ThemeForegroundLowBrush" Color="{DynamicResource FgColorLow}"></SolidColorBrush>
+    
+  </Application.Resources>
+
+    <Application.Styles>
+      <FluentTheme Mode="Dark"/>
+    </Application.Styles>
+</Application>
