@@ -498,6 +498,14 @@ namespace exInstaller.ViewModels
             set => this.RaiseAndSetIfChanged(ref _port, value);
         }
 
+        private int _wifiChannel;
+        public int WifiChannel
+        {
+            get => _wifiChannel;
+
+            set => this.RaiseAndSetIfChanged(ref _wifiChannel, value);
+        }
+
 
         private byte _mac1;
         public byte MAC1
@@ -679,6 +687,16 @@ namespace exInstaller.ViewModels
             get => _enableWifi;
 
             set => this.RaiseAndSetIfChanged(ref _enableWifi, value);
+
+        }
+
+        private bool _dontTouchWifiConfig;
+
+        public bool DontTouchWifiConfig
+        {
+            get => _dontTouchWifiConfig;
+
+            set => this.RaiseAndSetIfChanged(ref _dontTouchWifiConfig, value);
 
         }
 
@@ -876,7 +894,7 @@ namespace exInstaller.ViewModels
                                 config[i] = $"#define MOTOR_SHIELD_TYPE {MotorShield.ExMotoShieldDictonary[SelectedMotorShield.ShieldType]}";
                             }
 
-                            if (config[i].Contains("#define ENABLE_ETHERNET"))
+                            if (config[i].Contains("#define ENABLE_ETHERNET") && EnableEthernet)
                             {
                                 config[i] = $"#define ENABLE_ETHERNET {EnableEthernet.ToString().ToLower()}";
                             }
@@ -893,6 +911,10 @@ namespace exInstaller.ViewModels
                             }
                             if (EnableWifi)
                             {
+                                if (config[i].Contains("#define DONT_TOUCH_WIFI_CONF") && DontTouchWifiConfig)
+                                {
+                                    config[i] = $"#define DONT_TOUCH_WIFI_CONF";
+                                }
                                 if (config[i].Contains("#define WIFI_SSID"))
                                 {
                                     config[i] = $"#define WIFI_SSID \"{SSID}\"";
@@ -900,6 +922,10 @@ namespace exInstaller.ViewModels
                                 if (config[i].Contains("#define WIFI_PASSWORD"))
                                 {
                                     config[i] = $"#define WIFI_PASSWORD \"{WifiPass}\"";
+                                }
+                                if (config[i].Contains("#define WIFI_CHANNEL"))
+                                {
+                                    config[i] = $"#define WIFI_CHANNEL {WifiChannel}";
                                 }
                             }
                             if (EnableNetworking)
