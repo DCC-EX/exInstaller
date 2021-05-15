@@ -86,10 +86,21 @@ namespace exInstaller.Utils
                 Thread.Sleep(1000);
                 count++;
             }
+            
             mainWindowView.Status += Environment.NewLine;
-            channel = GrpcChannel.ForAddress("http://127.0.0.1:27160", new GrpcChannelOptions { Credentials = ChannelCredentials.Insecure });
-            client = new ArduinoCoreService.ArduinoCoreServiceClient(channel);
-            AsyncServerStreamingCall<InitResponse> init = client.Init(new InitRequest());
+            
+            AsyncServerStreamingCall<InitResponse> init;
+            try
+            {
+                channel = GrpcChannel.ForAddress("http://127.0.0.1:27160", new GrpcChannelOptions { Credentials = ChannelCredentials.Insecure });
+                client = new ArduinoCoreService.ArduinoCoreServiceClient(channel);
+                init = client.Init(new InitRequest());
+            } catch (RpcException e)
+            {
+                mainWindowView.Status += $"\r\n Failed to connect to gRPC due to {e.Message}";
+                return false;
+            }
+
 
             while (await init.ResponseStream.MoveNext())
             {

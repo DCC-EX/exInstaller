@@ -19,6 +19,11 @@ using System.Text.Json;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System.IO.Compression;
+using Avalonia.Controls;
+using MessageBox.Avalonia.Enums;
+using MessageBox.Avalonia.DTO;
+using MessageBox.Avalonia.Models;
+using Avalonia.Threading;
 
 namespace exInstaller.ViewModels
 {
@@ -295,7 +300,7 @@ namespace exInstaller.ViewModels
 
         public void Closing(object sender, System.ComponentModel.CancelEventArgs e)
         {
-           
+
             try
             {
                 if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX) || RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
@@ -316,7 +321,7 @@ namespace exInstaller.ViewModels
                         {
                             proc.Kill();
                         }
-                        
+
                     }
                 }
             }
@@ -923,7 +928,7 @@ namespace exInstaller.ViewModels
                                 {
                                     config[i] = $"#define WIFI_PASSWORD \"{WifiPass}\"";
                                 }
-                                if (config[i].Contains("#define WIFI_CHANNEL"))
+                                if (config[i].Contains("#define WIFI_CHANNEL") && WifiChannel > 0)
                                 {
                                     config[i] = $"#define WIFI_CHANNEL {WifiChannel}";
                                 }
@@ -998,7 +1003,7 @@ namespace exInstaller.ViewModels
             }
             else
             {
-                Status += "Compile failed please double check sketch and try again" +Environment.NewLine;
+                Status += "Compile failed please double check sketch and try again" + Environment.NewLine;
                 RefreshingPorts = false;
                 Progress = 0;
                 Busy = false;
@@ -1008,6 +1013,7 @@ namespace exInstaller.ViewModels
 
         private async Task GitCode(string url, string location, bool useRelease = false)
         {
+            string path = AppDomain.CurrentDomain.BaseDirectory;
             if (!Directory.Exists(location))
             {
                 Busy = true;
@@ -1027,7 +1033,6 @@ namespace exInstaller.ViewModels
 
                 try
                 {
-                    string path = AppDomain.CurrentDomain.BaseDirectory;
                     webClient.Headers.Add("User-Agent: exInstaller");
                     webClient.DownloadFile(new Uri(url), $"{path}{location}.zip");
                     Status += $"Extracting Zip file to {path}{location}";
@@ -1050,6 +1055,102 @@ namespace exInstaller.ViewModels
                     }
                 }
             }
+            else
+            {
+                if (url.Contains("CommandStation-EX"))
+                {
+                    Status += "Checking for new update" + Environment.NewLine;
+                    WebClient webClient = new WebClient();
+                    webClient.Headers.Add("User-Agent: exInstaller");
+                    if (useRelease)
+                    {
+                        string releaseJson = webClient.DownloadString(githubAPI + url + releases);
+                        JArray releaseInfo = JArray.Parse(releaseJson);
+                        JObject obj = (JObject)releaseInfo[0];
+                        url = obj["zipball_url"].ToString();
+                        //Status += $"Waiting 10 seconds before downloading to avoid rate limit{Environment.NewLine}";
+                        //Thread.Sleep(10000);
+                    }
+                    try
+                    {
+
+                        webClient.Headers.Add("User-Agent: exInstaller");
+                        webClient.DownloadFile(new Uri(url), $"{path}{location}-new.zip");
+                        ZipFile.ExtractToDirectory($"{location}-new.zip", ".", true);
+                    }
+                    catch (Exception e)
+                    {
+                        Status += $"Failed to extract due to {e.Message}";
+                    }
+                    string loc = location;
+                    foreach (string dir in Directory.GetDirectories("."))
+                    {
+
+                        if (location.Contains("/"))
+                        {
+                            loc = location.Split("/")[1];
+                        }
+                        if ((dir.Contains(loc) || dir.Replace("-", "").Contains(loc)) && dir.Contains("DCC-EX"))
+                        {
+                            MoveDirectory(dir, $"{location}-new");
+                        }
+                    }
+                    string[] oldVer = File.ReadAllLines($"{loc}{Path.DirectorySeparatorChar}version.h");
+                    string[] newVer = File.ReadAllLines($"{loc}-new{Path.DirectorySeparatorChar}version.h");
+                    string oldVerParsed = "";
+                    string newVerParsed = "";
+                    foreach (string line in oldVer)
+                    {
+                        if (line.Contains("#define VERSION"))
+                        {
+                            oldVerParsed = line.Replace("#define VERSION ", "").Replace("\"", "");
+                        }
+                    }
+                    foreach (string line in newVer)
+                    {
+                        if (line.Contains("#define VERSION"))
+                        {
+                            newVerParsed = line.Replace("#define VERSION ", "").Replace("\"", "");
+                        }
+                    }
+                    //Status += $"Old Version installed: {oldVerParsed}, New version downloaded: {newVerParsed}";
+                    if (!oldVerParsed.Equals(newVerParsed))
+                    {
+                        Dispatcher.UIThread.InvokeAsync(new Action(async () =>
+                        {
+                            var messageBoxCustomWindow = MessageBox.Avalonia.MessageBoxManager
+                 .GetMessageBoxCustomWindow(new MessageBoxCustomParams
+                 {
+                     ContentTitle = "Update Available",
+                     ContentMessage = $"Would you like to update from {oldVerParsed} to version {newVerParsed}?",
+                     ButtonDefinitions = new[] {
+                        new ButtonDefinition {Name = "No"},
+                        new ButtonDefinition {Name = "Yes", Type = ButtonType.Colored}
+                     },
+                     WindowStartupLocation = WindowStartupLocation.CenterScreen
+                 }); ;
+                            string reply = await messageBoxCustomWindow.Show();
+                            if (reply.Equals("No"))
+                            {
+                                Directory.Delete($"{location}-new",true);
+                                Status += $"Version {oldVerParsed} is still installed" + Environment.NewLine;
+                            }
+                            else
+                            {
+                                MoveDirectory($"{location}-new", $"{location}");
+                                Status += $"Updated to {newVerParsed}, Double check config.example.h for potential changes" + Environment.NewLine;
+                            }
+                        }));
+                    }
+                    else
+                    {
+                        Status += "You are using the latest CommandStation-EX" + Environment.NewLine;
+                        Directory.Delete($"{location}-new", true);
+                    }
+                }
+            }
+
+
             //CloneOptions options = new CloneOptions();
             //options.RepositoryOperationCompleted = new LibGit2Sharp.Handlers.RepositoryOperationCompleted(GotCode);
             //Progress = 0;
@@ -1130,6 +1231,26 @@ namespace exInstaller.ViewModels
         //    //CompileSketch();
         //    Status += $"{SelectedConfig.DisplayName} Code obtained from Repository{Environment.NewLine}";
         //}
+
+        public static void MoveDirectory(string source, string target)
+        {
+            var sourcePath = source.TrimEnd('\\', ' ');
+            var targetPath = target.TrimEnd('\\', ' ');
+            var files = Directory.EnumerateFiles(sourcePath, "*", SearchOption.AllDirectories)
+                                 .GroupBy(s => Path.GetDirectoryName(s));
+            foreach (var folder in files)
+            {
+                var targetFolder = folder.Key.Replace(sourcePath, targetPath);
+                Directory.CreateDirectory(targetFolder);
+                foreach (var file in folder)
+                {
+                    var targetFile = Path.Combine(targetFolder, Path.GetFileName(file));
+                    if (File.Exists(targetFile)) File.Delete(targetFile);
+                    File.Move(file, targetFile);
+                }
+            }
+            Directory.Delete(source, true);
+        }
 
         private void Client_DownloadProgressChanged(object sender, DownloadProgressChangedEventArgs e)
         {
