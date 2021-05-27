@@ -1,0 +1,182 @@
+﻿<Window xmlns="https://github.com/avaloniaui"  xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="clr-namespace:exInstaller.ViewModels;assembly=exInstaller"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d" x:Class="exInstaller.Views.MainWindow"
+        Icon="/Assets/dccex-logo.ico"
+        Title="exInstaller"
+        
+        BorderBrush="{DynamicResource ThemeAccentBrush}"
+        Height="600" Width="1100">
+  <!--FontFamily="resm:exInstaller.Assets#Flameco"-->
+  <Design.DataContext>
+    <vm:MainWindowViewModel />
+  </Design.DataContext>
+  <Grid>
+    <DockPanel>
+      <DockPanel DockPanel.Dock="Bottom">
+        <ProgressBar Height="25" Margin="5"   Value="{Binding Progress}" VerticalAlignment="Center"   DockPanel.Dock="Right" Width="NaN"></ProgressBar>
+      </DockPanel>
+      <Grid DockPanel.Dock="Top" Margin="5">
+        <Grid.ColumnDefinitions>
+          <ColumnDefinition Width="500"></ColumnDefinition>
+          <ColumnDefinition Width="*"></ColumnDefinition>
+        </Grid.ColumnDefinitions>
+        <ScrollViewer>
+          <StackPanel>
+
+            <TextBlock Margin="5">Select Base Station Type</TextBlock>
+            <ComboBox Margin="5" Width="250" Items="{Binding Configs}" IsEnabled="{Binding !Busy}" Focusable="{Binding !Busy}" SelectedItem="{Binding SelectedConfig}">
+              <ComboBox.ItemTemplate>
+                <DataTemplate>
+                  <TextBlock Text="{Binding DisplayName}"  />
+                </DataTemplate>
+              </ComboBox.ItemTemplate>
+            </ComboBox>
+            <!--<TextBlock Margin="5" Style="{DynamicResource MaterialDesignSubtitle2TextBlock}">Select Repo Branch</TextBlock>
+                        <ComboBox Margin="5" Style="{DynamicResource MaterialDesignComboBox}" Items="{Binding Branches}" SelectedItem="{Binding SelectedBranch}"></ComboBox>-->
+            <TextBlock Margin="5">Select Board Type</TextBlock>
+            <ComboBox Margin="5" Width="250" Items="{Binding SelectedSupportedBoards}" IsEnabled="{Binding !Busy}" Focusable="{Binding !Busy}" SelectedItem="{Binding SelectedBoard}">
+              <ComboBox.ItemTemplate>
+                <DataTemplate>
+                  <TextBlock Text="{Binding Name}"  />
+                </DataTemplate>
+              </ComboBox.ItemTemplate>
+            </ComboBox>
+            <TextBlock Margin="5">Select Motor Shield</TextBlock>
+            <ComboBox Margin="5" Width="250" Items="{Binding SelectedSupportedMotorShields}" IsEnabled="{Binding !Busy}" Focusable="{Binding !Busy}" SelectedItem="{Binding SelectedMotorShield}">
+              <ComboBox.ItemTemplate>
+                <DataTemplate>
+                  <TextBlock Text="{Binding Name}"  />
+                </DataTemplate>
+              </ComboBox.ItemTemplate>
+            </ComboBox>
+            <TextBlock Margin="5">Select COM Port</TextBlock>
+            <ComboBox Margin="5" Width="250" Items="{Binding AvailableComPorts}" IsEnabled="{Binding !RefreshingPorts}" Focusable="{Binding !RefreshingPorts}" SelectedItem="{Binding SelectedComPort}">
+            </ComboBox>
+
+            <TabControl IsVisible="{Binding EnableAdvanced}">
+              <TabItem Header="OLED/LCD">
+                <StackPanel>
+                  <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                    <TextBlock Margin="1" VerticalAlignment="Center">LCD</TextBlock>
+                    <CheckBox Margin="1" VerticalAlignment="Center" IsChecked="{Binding EnableLCD}"></CheckBox>
+                    
+                  </StackPanel>
+                  <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                    <TextBlock Margin="1" VerticalAlignment="Center">OLED</TextBlock>
+                    <CheckBox Margin="1" VerticalAlignment="Center" IsChecked="{Binding EnableOLED}"></CheckBox>
+                  </StackPanel>
+                  <StackPanel IsVisible="{Binding EnableLCD}" HorizontalAlignment="Center" Margin="1">
+                    <TextBlock HorizontalAlignment="Center">LCD Address (in Decimal format)</TextBlock>
+                    <TextBox MaxLength="2" Width="NaN" IsEnabled="{Binding EnableLCD}" Text="{Binding LCDAddress}"></TextBox>
+                  </StackPanel>
+
+                  <StackPanel IsVisible="{Binding EnableLCD}" HorizontalAlignment="Center" Margin="1">
+                    <TextBlock HorizontalAlignment="Center">LCD Columns</TextBlock>
+                    <TextBox MaxLength="2" IsEnabled="{Binding EnableLCD}" Width="NaN" Text="{Binding LCDColumns}"></TextBox>
+                  </StackPanel>
+
+                  <StackPanel IsVisible="{Binding EnableLCD}" HorizontalAlignment="Center" Margin="1">
+                    <TextBlock HorizontalAlignment="Center">LCD Lines</TextBlock>
+                    <TextBox MaxLength="2" IsEnabled="{Binding EnableLCD}" Width="NaN" Text="{Binding LCDLines}"></TextBox>
+                  </StackPanel>
+
+                  <StackPanel IsVisible="{Binding EnableOLED}" HorizontalAlignment="Center" Margin="1">
+                    <TextBlock HorizontalAlignment="Center">OLED Width (in pixels)</TextBlock>
+                    <TextBox MaxLength="4" IsEnabled="{Binding EnableOLED}" Width="NaN" Text="{Binding OLEDWidth}"></TextBox>
+                  </StackPanel>
+
+                  <StackPanel IsVisible="{Binding EnableOLED}" HorizontalAlignment="Center" Margin="1">
+                    <TextBlock HorizontalAlignment="Center">OLED Height (in pixels)</TextBlock>
+                    <TextBox IsEnabled="{Binding EnableOLED}" MaxLength="4" Width="NaN" Text="{Binding OLEDHeight}"></TextBox>
+                  </StackPanel>
+                </StackPanel>
+              </TabItem>
+              <TabItem Header="Network">
+                <StackPanel>
+                  <StackPanel Margin="1">
+                    <TextBlock HorizontalAlignment="Center">Host Name</TextBlock>
+                    <TextBox IsEnabled="{Binding EnableNetworking}"  Text="{Binding Hostname}"></TextBox>
+                  </StackPanel>
+                  <StackPanel Margin="1">
+                    <TextBlock HorizontalAlignment="Center">IP Address</TextBlock>
+                    <StackPanel HorizontalAlignment="Center" Orientation="Horizontal">
+                      <TextBox IsEnabled="{Binding EnableNetworking}" MaxLength="3" Width="30" Margin="1" Text="{Binding IP1}"></TextBox>
+                      <TextBox IsEnabled="{Binding EnableNetworking}" MaxLength="3" Width="30" Margin="1" Text="{Binding IP2}"></TextBox>
+                      <TextBox IsEnabled="{Binding EnableNetworking}" MaxLength="3" Width="30" Margin="1" Text="{Binding IP3}"></TextBox>
+                      <TextBox IsEnabled="{Binding EnableNetworking}" MaxLength="3" Width="30" Margin="1" Text="{Binding IP4}"></TextBox>
+                    </StackPanel>
+                  </StackPanel>
+                  <StackPanel  Margin="1">
+                    <TextBlock HorizontalAlignment="Center">Server Port</TextBlock>
+                    <TextBox IsEnabled="{Binding EnableNetworking}" Text="{Binding Port}"></TextBox>
+                  </StackPanel>
+                </StackPanel>
+              </TabItem>
+              <TabItem Header="Wifi">
+                <StackPanel>
+                  <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                    <TextBlock Margin="1" VerticalAlignment="Center">Enable Wifi</TextBlock>
+                    <CheckBox Margin="1" VerticalAlignment="Center" IsChecked="{Binding EnableWifi}"></CheckBox>
+                    <TextBlock Margin="1" VerticalAlignment="Center">Don't Touch Wifi Config</TextBlock>
+                    <CheckBox Margin="1" VerticalAlignment="Center" IsChecked="{Binding DontTouchWifiConfig}"></CheckBox>
+                  </StackPanel>
+                  <StackPanel  Margin="1">
+                    <TextBlock HorizontalAlignment="Center">Wifi SSID</TextBlock>
+                    <TextBox IsEnabled="{Binding EnableWifi}" Text="{Binding SSID}"></TextBox>
+                  </StackPanel>
+                  <StackPanel  Margin="1">
+                    <TextBlock HorizontalAlignment="Center">Wifi Password</TextBlock>
+                    <TextBox IsEnabled="{Binding EnableWifi}" Text="{Binding WifiPass}"></TextBox>
+                  </StackPanel>
+                  <StackPanel  Margin="1">
+                    <TextBlock HorizontalAlignment="Center">Wifi Channel</TextBlock>
+                    <TextBox IsEnabled="{Binding EnableWifi}" Text="{Binding WifiChannel}"></TextBox>
+                  </StackPanel>
+                </StackPanel>
+              </TabItem>
+              <TabItem Header="Ethernet">
+                <StackPanel>
+                  <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                  <TextBlock Margin="1" VerticalAlignment="Center">Enable Ethernet</TextBlock>
+                    
+                  <CheckBox Margin="1" VerticalAlignment="Center" IsChecked="{Binding EnableEthernet}"></CheckBox>
+                  </StackPanel>
+                  <StackPanel Margin="1">
+                    <TextBlock HorizontalAlignment="Center">MAC Address (in Decimal)</TextBlock>
+                    <StackPanel HorizontalAlignment="Center" Orientation="Horizontal">
+                      <TextBox IsEnabled="{Binding EnableEthernet}" MaxLength="2" Width="30" Margin="1" Text="{Binding MAC1}"></TextBox>
+                      <TextBox IsEnabled="{Binding EnableEthernet}" MaxLength="2" Width="30" Margin="1" Text="{Binding MAC2}"></TextBox>
+                      <TextBox IsEnabled="{Binding EnableEthernet}" MaxLength="2" Width="30" Margin="1" Text="{Binding MAC3}"></TextBox>
+                      <TextBox IsEnabled="{Binding EnableEthernet}" MaxLength="2" Width="30" Margin="1" Text="{Binding MAC4}"></TextBox>
+                      <TextBox IsEnabled="{Binding EnableEthernet}" MaxLength="2" Width="30" Margin="1" Text="{Binding MAC5}"></TextBox>
+                      <TextBox IsEnabled="{Binding EnableEthernet}" MaxLength="2" Width="30" Margin="1" Text="{Binding MAC6}"></TextBox>
+                    </StackPanel>
+                  </StackPanel>
+                </StackPanel>
+              </TabItem>
+
+
+
+
+
+
+
+            </TabControl>
+
+            <Button Margin="5" Background="{DynamicResource ThemeAccentBrush}" Command="{Binding RefreshComPortButton}" Content="Refresh Ports"></Button>
+            <Button Margin="5" Background="{DynamicResource ThemeAccentBrush}" Command="{Binding CompileUpload}">Compile and Upload</Button>
+
+          </StackPanel>
+        </ScrollViewer>
+        <TextBox Grid.Column="1" Text="{Binding Status}" TextWrapping="Wrap" CaretIndex="{Binding StatusCaret}" Width="NaN" IsReadOnly="True" Margin="5" />
+        <!--<Image  Source="{Binding WiringDiagram}"></Image>-->
+      </Grid>
+
+    </DockPanel>
+
+  </Grid>
+
+
+</Window>

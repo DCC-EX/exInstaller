@@ -1,0 +1,85 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>netcoreapp5.0</TargetFramework>
+    <RuntimeIdentifiers>win-x86;win-x64;osx-x64;linux-x64;linux-arm;linux-arm64</RuntimeIdentifiers>
+    <StartupObject>exInstaller.Program</StartupObject>
+    <AssemblyName>exInstaller</AssemblyName>
+    <Version>2.3.1</Version>
+    <Authors>Dex's Lab</Authors>
+    <Company>DCC Extended</Company>
+    <PackageProjectUrl>https://dcc-ex.github.io/</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/DCC-EX/exnstaller</RepositoryUrl>
+    <PackageIcon>dcc-ex-logo.png</PackageIcon>
+    <ApplicationIcon>Assets\dccex-logo.ico</ApplicationIcon>
+    <AssemblyVersion>2.3.1.0</AssemblyVersion>
+    <Product>exInstaller</Product>
+    <Platforms>AnyCPU;x64;x86</Platforms>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Update="**\*.xaml.cs">
+      <DependentUpon>%(Filename)</DependentUpon>
+    </Compile>
+    <AvaloniaResource Include="**\*.xaml">
+      <SubType>Designer</SubType>
+    </AvaloniaResource>
+    <AvaloniaResource Include="Assets\**" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Avalonia" Version="0.10.4" />
+    <PackageReference Include="Avalonia.Desktop" Version="0.10.4" />
+    <PackageReference Include="Avalonia.ReactiveUI" Version="0.10.4" />
+    <PackageReference Include="Google.Protobuf" Version="3.17.0" />
+    <PackageReference Include="Grpc" Version="2.37.1" />
+    <PackageReference Include="Grpc.Core" Version="2.37.1" />
+    <PackageReference Include="Grpc.Core.Api" Version="2.37.1" />
+    <PackageReference Include="Grpc.Net.Client" Version="2.37.0" />
+    <PackageReference Include="Grpc.Net.Common" Version="2.37.0" />
+    <PackageReference Include="Grpc.Tools" Version="2.37.1">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+    <PackageReference Include="MessageBox.Avalonia" Version="1.2.0" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
+    <PackageReference Include="System.IO.Ports" Version="5.0.1" />
+  </ItemGroup>
+  <ItemGroup>
+    <Protobuf Include="../arduino-cli-rpc/**/*.proto" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Update="arduino-cli-runtimes\Linux_32bit\arduino-cli">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="arduino-cli-runtimes\Linux_64bit\arduino-cli">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="arduino-cli-runtimes\Linux_ARM64\arduino-cli">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="arduino-cli-runtimes\Linux_ARM\arduino-cli">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="arduino-cli-runtimes\macOS_64bit\arduino-cli">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="arduino-cli-runtimes\Windows_32bit\arduino-cli.exe">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="arduino-cli-runtimes\Windows_64bit\arduino-cli.exe">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="arduino-cli.yaml">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="config.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="arduino-cli-runtimes/*">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Assets\dcc-ex-logo.png">
+      <Pack>True</Pack>
+      <PackagePath></PackagePath>
+    </None>
+  </ItemGroup>
+</Project>

@@ -359,3 +359,4 @@ MigrationBackup/
 /BaseStationInstaller/arduino-cli.exe
 *.tar.gz
 *.zip
+*.tar
