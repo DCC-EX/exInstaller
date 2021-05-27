@@ -1,4 +1,4 @@
-# BaseStation-Installer
+# exInstaller
 
 ![.NET Core](https://github.com/DCC-EX/exInstaller/workflows/.NET%20Core/badge.svg)
 
