@@ -15,7 +15,7 @@ This project provides a "one-click" installer for DCC++. At runtime, you can sel
 
 1. Download from [Releases](https://github.com/DCC-EX/exInstaller/releases) Section for your Operating system.
 2. Unzip files from archive into separate folder
-3. Run exInstaller.exe file
+3. Run exInstaller.exe file on Windows for MacOS and Linux open a terminal in the folder and type ./exInstaller
 4. Select which Command Station Config you would like to run.
 5. Select Supported boards for Base Station.
 6. Select Support Motor Shield
