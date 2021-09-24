@@ -34,7 +34,8 @@ namespace exInstaller.ViewModels
         //Signature sig = new Signature(new Identity("random", "random@random.com"), DateTimeOffset.Now);
         string githubAPI = "https://api.github.com/repos/";
         string releases = "/releases";
-        string masterZip = "/zipball/master";
+        string getZip = "/zipball/{0}";
+        string branches = "/branches";
         WizardViewModel wizard;
 
         public MainWindowViewModel()
@@ -52,6 +53,7 @@ namespace exInstaller.ViewModels
             LCDAddress = 0x27;
             LCDColumns = 16;
             LCDLines = 2;
+            CurrentBranch = new ObservableCollection<string>();
             MAC1 = 0xde;
             MAC2 = 0xad;
             MAC3 = 0xbe;
@@ -360,14 +362,14 @@ namespace exInstaller.ViewModels
         public Config SelectedConfig
         {
             get => _selectedConfig;
-            set => this.RaiseAndSetIfChanged(ref _selectedConfig, value);
-            //{
-            //    _selectedConfig = value;
-            //    //RaiseAndSetIfChanged("SelectedConfig");
-            //    SelectedSupportedBoards = new ObservableCollection<Board>(SelectedConfig.SupportedBoards);
-            //    SelectedSupportedMotorShields = new ObservableCollection<MotorShield>(SelectedConfig.SupportedMotorShields);
-            //    GitCode(SelectedConfig.Git, $@".\{SelectedConfig.Name}");
-            //}
+            set //this.RaiseAndSetIfChanged(ref _selectedConfig, value);
+            {
+                _selectedConfig = value;
+                //RaiseAndSetIfChanged("SelectedConfig");
+                //SelectedSupportedBoards = new ObservableCollection<Board>(SelectedConfig.SupportedBoards);
+                //SelectedSupportedMotorShields = new ObservableCollection<MotorShield>(SelectedConfig.SupportedMotorShields);
+                GitCode(SelectedConfig.Git, $@".\{SelectedConfig.Name}");
+            }
         }
         /// <summary>
         /// Updatable colletion of boards pulled from Selected Config
@@ -400,24 +402,6 @@ namespace exInstaller.ViewModels
             set => this.RaiseAndSetIfChanged(ref _availableComPorts, value);
         }
 
-        /// <summary>
-        /// List of Branches in Git Repo for Selected Config
-        /// </summary>
-        //private ObservableCollection<string> _branches;
-        //public ObservableCollection<string> Branches
-        //{
-        //    get
-        //    {
-        //        return _branches;
-        //    }
-        //    set
-        //    {
-
-        //        _branches = value;
-        //        //RaiseAndSetIfChanged("Branches");
-        //    }
-        //}
-
         private Board _selectedBoard;
         public Board SelectedBoard
         {
@@ -442,6 +426,13 @@ namespace exInstaller.ViewModels
             get => _selectedComPort;
 
             set => this.RaiseAndSetIfChanged(ref _selectedComPort, value);
+        }
+
+        private ObservableCollection<string> _currentBranch;
+        public ObservableCollection<string> CurrentBranch
+        {
+            get => _currentBranch;
+            set => this.RaiseAndSetIfChanged(ref _currentBranch, value);
         }
 
         //private string _selectedBranch;
@@ -826,6 +817,8 @@ namespace exInstaller.ViewModels
         {
             get;
         }
+        bool _daemonStarted = false;
+        public bool DameonStarted { get => _daemonStarted; set => _daemonStarted = value; }
 
 
 
@@ -877,12 +870,12 @@ namespace exInstaller.ViewModels
                     bool success = await helper.GetLibrary(dep.Name);
                     if (!success)
                     {
-                        await GitCode(githubAPI + dep.Repo + masterZip, dep.Location);
+                        await GitCode(githubAPI + dep.Repo + String.Format(getZip, "master"), dep.Location);
                     }
                 }
                 else
                 {
-                    await GitCode(githubAPI + dep.Repo + masterZip, dep.Location);
+                    await GitCode(githubAPI + dep.Repo + String.Format(getZip, "master"), dep.Location);
                 }
             }
             return true;

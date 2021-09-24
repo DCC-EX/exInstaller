@@ -22,6 +22,7 @@ namespace exInstaller.Utils
         GrpcChannel channel;
         ArduinoCoreService.ArduinoCoreServiceClient client;
         Instance instance;
+       
 
         public ArudinoCliHelper(IMainWindowViewModel mWindow)
         {
@@ -50,25 +51,27 @@ namespace exInstaller.Utils
 
                     }
                 }
+                ProcessStartInfo start = new ProcessStartInfo();
+                AppContext.SetSwitch("System.Net.Http.SocketsHttpHandler.Http2UnencryptedSupport", true);
+                start.FileName = $@"arduino-cli";
+                start.UseShellExecute = false;
+                start.WindowStyle = ProcessWindowStyle.Hidden;
+                start.CreateNoWindow = true;
+                start.RedirectStandardOutput = true;
+                start.RedirectStandardError = true;
+                Process process = new Process();
+                start.Arguments = "daemon";
+                start.RedirectStandardOutput = false;
+                start.RedirectStandardError = false;
+                process.StartInfo = start;
+                process.Start();
             }
             catch (Exception ex)
             {
                 mWindow.Status += $"Failed to exit arduino cli due to {ex.Message}";
+                
             }
-            ProcessStartInfo start = new ProcessStartInfo();
-            AppContext.SetSwitch("System.Net.Http.SocketsHttpHandler.Http2UnencryptedSupport", true);
-            start.FileName = $@"arduino-cli";
-            start.UseShellExecute = false;
-            start.WindowStyle = ProcessWindowStyle.Hidden;
-            start.CreateNoWindow = true;
-            start.RedirectStandardOutput = true;
-            start.RedirectStandardError = true;
-            Process process = new Process();
-            start.Arguments = "daemon";
-            start.RedirectStandardOutput = false;
-            start.RedirectStandardError = false;
-            process.StartInfo = start;
-            process.Start();
+
         }
 
 

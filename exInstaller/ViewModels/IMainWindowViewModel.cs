@@ -9,6 +9,7 @@ namespace exInstaller.ViewModels
     public interface IMainWindowViewModel
     {
         public string Status { get; set; }
+        public bool DameonStarted { get; set; }
         public Tuple<string, string> SelectedComPort { get; set; }
 
         public int Progress { get; set; }
