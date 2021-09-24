@@ -8,12 +8,13 @@ namespace exInstaller.Models
 {
     public enum MotorShieldType
     {
-        Arduino,
-        Pololu,
+        ARDUINO,
+        POLOLU,
         BTS7960B,
-        FireBox_MK1,
-        FireBox_MK1S,
-        Fundumoto
+        FIREBOX_MK1,
+        FIREBOX_MK1S,
+        FUNDUMOTO,
+        IBT_2_WITH_ARDUINO
     }
 
 
@@ -22,11 +23,12 @@ namespace exInstaller.Models
 
         public static Dictionary<MotorShieldType, string> ExMotoShieldDictonary = new Dictionary<MotorShieldType, string>()
         {
-            { MotorShieldType.Arduino, "STANDARD_MOTOR_SHIELD"},
-            {MotorShieldType.Pololu,  "POLOLU_MOTOR_SHIELD"},
-            {MotorShieldType.Fundumoto,  "FUNDUMOTO_SHIELD"},
-            {MotorShieldType.FireBox_MK1,  "FIREBOX_MK1"},
-            {MotorShieldType.FireBox_MK1S,  "FIREBOX_MK1S"},
+            { MotorShieldType.ARDUINO, "STANDARD_MOTOR_SHIELD"},
+            {MotorShieldType.POLOLU,  "POLOLU_MOTOR_SHIELD"},
+            {MotorShieldType.FUNDUMOTO,  "FUNDUMOTO_SHIELD"},
+            {MotorShieldType.FIREBOX_MK1,  "FIREBOX_MK1"},
+            {MotorShieldType.FIREBOX_MK1S,  "FIREBOX_MK1S"},
+            {MotorShieldType.IBT_2_WITH_ARDUINO, "IBT_2_WITH_ARDUINO" }
 
         };
         public MotorShield(string name, MotorShieldType type)

@@ -22,6 +22,7 @@ namespace exInstaller.Utils
         GrpcChannel channel;
         ArduinoCoreService.ArduinoCoreServiceClient client;
         Instance instance;
+
         public ArudinoCliHelper(IMainWindowViewModel mWindow)
         {
             mainWindowView = mWindow;

@@ -1,0 +1,29 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             x:Class="exInstaller.Views.WizardView">
+  <StackPanel Orientation="Horizontal" Height="445" Width="795" >
+    <Button Command="{Binding PreviousPage}" Name="left" VerticalAlignment="Bottom" HorizontalAlignment="Left" Margin="5" Padding="20">
+      <Path Data="M20,11V13H8L13.5,18.5L12.08,19.92L4.16,12L12.08,4.08L13.5,5.5L8,11H20Z" Fill="Black"/>
+    </Button>
+    <Carousel Name="carousel" SelectedIndex="{Binding CurrentPage}">
+      <Carousel.PageTransition>
+        <PageSlide Duration="1" Orientation="Vertical" />
+      </Carousel.PageTransition>
+      <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
+        <TextBlock>Welcome to exInstaller Wizard</TextBlock>
+      </StackPanel>
+      <StackPanel>
+        <TextBlock>Networking</TextBlock>
+      </StackPanel>
+      <StackPanel>
+        <TextBlock>Addons</TextBlock>
+      </StackPanel>
+    </Carousel>
+    <Button Command="{Binding NextPage}" Name="right" VerticalAlignment="Bottom" HorizontalAlignment="Right" Margin="5" Padding="20">
+      <Path Data="M4,11V13H16L10.5,18.5L11.92,19.92L19.84,12L11.92,4.08L10.5,5.5L16,11H4Z" Fill="Black"/>
+    </Button>
+  </StackPanel>
+</UserControl>

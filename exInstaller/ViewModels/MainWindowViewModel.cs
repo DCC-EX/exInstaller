@@ -1,6 +1,5 @@
 ﻿using exInstaller.Models;
 using exInstaller.Utils;
-//using LibGit2Sharp;
 using ReactiveUI;
 using System;
 using System.Collections.Generic;
@@ -36,6 +35,8 @@ namespace exInstaller.ViewModels
         string githubAPI = "https://api.github.com/repos/";
         string releases = "/releases";
         string masterZip = "/zipball/master";
+        WizardViewModel wizard;
+
         public MainWindowViewModel()
         {
             EnableNetworking = false;
@@ -80,6 +81,10 @@ namespace exInstaller.ViewModels
             RefreshComPortButton = ReactiveCommand.Create(RefreshComPortsCommand, this.WhenAnyValue(x => x.RefreshingPorts, (refrshing) =>
             {
                 return !refrshing;
+            }).ObserveOn(RxApp.MainThreadScheduler));
+            StartWizardButton = ReactiveCommand.Create(StartWizard, this.WhenAnyValue(x => x.Busy, (busy) =>
+            {
+                return !busy;
             }).ObserveOn(RxApp.MainThreadScheduler));
             CompileUpload = ReactiveCommand.Create(CompileandUploadCommand, this.WhenAnyValue(
                 x => x.Busy,
@@ -266,7 +271,7 @@ namespace exInstaller.ViewModels
             }
             if (!String.IsNullOrEmpty(destRuntime))
             {
-                if (!File.Exists(destRuntime))
+                if (!File.Exists(destRuntime)  && File.Exists(cliRuntime))
                 {
                     File.Copy(cliRuntime, destRuntime);
                     if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux) || RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
@@ -795,6 +800,20 @@ namespace exInstaller.ViewModels
         void RefreshComPortsCommand()
         {
             Task task = new Task(helper.DetectBoard);
+            task.Start();
+        }
+
+        public ReactiveCommand<Unit, Unit> StartWizardButton
+        {
+            get;
+        }
+
+        void StartWizard()
+        {
+            Task task = new Task(() =>
+            {
+                wizard = new WizardViewModel(this);
+            });
             task.Start();
         }
 

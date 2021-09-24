@@ -1,5 +1,6 @@
 ﻿<Window xmlns="https://github.com/avaloniaui"  xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:vm="clr-namespace:exInstaller.ViewModels;assembly=exInstaller"
+        xmlns:v="clr-namespace:exInstaller.Views;assembly=exInstaller"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         mc:Ignorable="d" x:Class="exInstaller.Views.MainWindow"
@@ -12,6 +13,11 @@
   <Design.DataContext>
     <vm:MainWindowViewModel />
   </Design.DataContext>
+  <Window.ContentTemplate>
+    <DataTemplate DataType="{x:Type vm:WizardViewModel}" >
+      <v:WizardView />
+    </DataTemplate>
+  </Window.ContentTemplate>
   <Grid>
     <DockPanel>
       <DockPanel DockPanel.Dock="Bottom">
@@ -156,18 +162,11 @@
                   </StackPanel>
                 </StackPanel>
               </TabItem>
-
-
-
-
-
-
-
             </TabControl>
 
             <Button Margin="5" Background="{DynamicResource ThemeAccentBrush}" Command="{Binding RefreshComPortButton}" Content="Refresh Ports"></Button>
             <Button Margin="5" Background="{DynamicResource ThemeAccentBrush}" Command="{Binding CompileUpload}">Compile and Upload</Button>
-
+            <Button Margin="5,150,5,5" Background="{DynamicResource ThemeAccentBrush3}" Command="{Binding StartWizard}">Start Wizard</Button>
           </StackPanel>
         </ScrollViewer>
         <TextBox Grid.Column="1" Text="{Binding Status}" TextWrapping="Wrap" CaretIndex="{Binding StatusCaret}" Width="NaN" IsReadOnly="True" Margin="5" />
