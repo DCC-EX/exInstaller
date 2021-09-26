@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Net;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
@@ -35,7 +36,21 @@ namespace exInstaller.Models
 
     public static class Settings
     {
-        public static List<Config> DefaultConfigs = JsonSerializer.Deserialize<List<Config>>(File.ReadAllText("config.json"));
+
+        public static List<Config> DefaultConfigs()
+        {
+            WebClient client = new WebClient();
+            string config;
+            try
+            {
+               config = client.DownloadString("https://raw.githubusercontent.com/DCC-EX/CommandStation-EX/master/config.json");
+            } catch(WebException e)
+            {
+                config = File.ReadAllText("./config.json");
+            }
+            return JsonSerializer.Deserialize<List<Config>>(config);
+        }
+
         //{
         //    {
         //        new Config

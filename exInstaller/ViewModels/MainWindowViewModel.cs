@@ -351,7 +351,7 @@ namespace exInstaller.ViewModels
         {
             get
             {
-                return Settings.DefaultConfigs;
+                return Settings.DefaultConfigs();
             }
         }
 

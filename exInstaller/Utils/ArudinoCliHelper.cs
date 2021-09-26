@@ -22,7 +22,9 @@ namespace exInstaller.Utils
         GrpcChannel channel;
         ArduinoCoreService.ArduinoCoreServiceClient client;
         Instance instance;
-       
+        public bool daemonRunning = false;
+        Process daemon;
+
 
         public ArudinoCliHelper(IMainWindowViewModel mWindow)
         {
@@ -59,19 +61,34 @@ namespace exInstaller.Utils
                 start.CreateNoWindow = true;
                 start.RedirectStandardOutput = true;
                 start.RedirectStandardError = true;
-                Process process = new Process();
+                daemon = new Process();
                 start.Arguments = "daemon";
                 start.RedirectStandardOutput = false;
                 start.RedirectStandardError = false;
-                process.StartInfo = start;
-                process.Start();
+                daemon.StartInfo = start;
+                daemon.Start();
+
             }
             catch (Exception ex)
             {
-                mWindow.Status += $"Failed to exit arduino cli due to {ex.Message}";
-                
+                mWindow.Status += $"Failed to start arduino cli due to {ex.Message}";
             }
 
+        }
+
+        bool ProcessIsRunning(Process p)
+        {
+            bool isRunning;
+            try
+            {
+                isRunning = !p.HasExited && p.Threads.Count > 0;
+            }
+            catch (SystemException sEx)
+            {
+                isRunning = false;
+            }
+
+            return isRunning;
         }
 
 
@@ -79,123 +96,136 @@ namespace exInstaller.Utils
         long totalSize = 0;
         public async Task<bool> Init()
         {
-            mainWindowView.Status += "Starting arduino cli please wait";
+            if (ProcessIsRunning(daemon))
+            {
+                mainWindowView.Status += "Starting arduino cli please wait";
 
-            mainWindowView.Busy = true;
-            mainWindowView.RefreshingPorts = true;
-            int count = 0;
-            while (count < 10)
-            {
-                mainWindowView.Status += ".";
-                Thread.Sleep(1000);
-                count++;
-            }
-            
-            mainWindowView.Status += Environment.NewLine;
-            
-            AsyncServerStreamingCall<InitResponse> init;
-            try
-            {
-                channel = GrpcChannel.ForAddress("http://127.0.0.1:27160", new GrpcChannelOptions { Credentials = ChannelCredentials.Insecure });
-                client = new ArduinoCoreService.ArduinoCoreServiceClient(channel);
-                init = client.Init(new InitRequest());
-            } catch (RpcException e)
-            {
-                mainWindowView.Status += $"\r\n Failed to connect to gRPC due to {e.Message}";
-                return false;
-            }
+                mainWindowView.Busy = true;
+                mainWindowView.RefreshingPorts = true;
+                int count = 0;
+                while (count < 10)
+                {
+                    mainWindowView.Status += ".";
+                    Thread.Sleep(1000);
+                    count++;
+                }
 
+                mainWindowView.Status += Environment.NewLine;
 
-            while (await init.ResponseStream.MoveNext())
-            {
-                InitResponse resp = init.ResponseStream.Current;
-                instance = resp.Instance;
-            }
-            if (instance != null)
-            {
+                AsyncServerStreamingCall<InitResponse> init;
                 try
                 {
-                    AsyncServerStreamingCall<UpdateIndexResponse> update = client.UpdateIndex(new UpdateIndexRequest { Instance = instance });
-                    while (await update.ResponseStream.MoveNext())
-                    {
-                        UpdateIndexResponse resp = update.ResponseStream.Current;
-                        if (resp.DownloadProgress != null)
-                        {
-                            if (!String.IsNullOrEmpty(resp.DownloadProgress.File))
-                            {
-                                currentFile = resp.DownloadProgress.File;
-                                totalSize = resp.DownloadProgress.TotalSize;
-                            }
-                            if (!resp.DownloadProgress.Completed)
-                            {
-                                mainWindowView.Status += $"Downloading {currentFile}: {resp.DownloadProgress.Downloaded}/{totalSize}{Environment.NewLine}";
-                            }
-                            else
-                            {
-                                mainWindowView.Status += $"{currentFile} download complete{Environment.NewLine}";
-                            }
-                        }
-
-                    }
-
-                    AsyncServerStreamingCall<UpdateCoreLibrariesIndexResponse> coreLibUpdate = client.UpdateCoreLibrariesIndex(new UpdateCoreLibrariesIndexRequest { Instance = instance });
-                    mainWindowView.Status += "Updating core libraries index";
-                    while (await coreLibUpdate.ResponseStream.MoveNext())
-                    {
-                        UpdateCoreLibrariesIndexResponse resp = coreLibUpdate.ResponseStream.Current;
-                        if (resp.DownloadProgress != null && !resp.DownloadProgress.Completed)
-                        {
-                            mainWindowView.Status += ".";
-                        }
-                    }
-                    mainWindowView.Status += "Core Library indexes updated" + Environment.NewLine;
-                    AsyncServerStreamingCall<UpdateLibrariesIndexResponse> liUpdate = client.UpdateLibrariesIndex(new UpdateLibrariesIndexRequest { Instance = instance});
-                    mainWindowView.Status += "Updating libraries index";
-                    while (await liUpdate.ResponseStream.MoveNext())
-                    {
-                        UpdateLibrariesIndexResponse resp = liUpdate.ResponseStream.Current;
-                        if (resp.DownloadProgress != null && !resp.DownloadProgress.Completed)
-                        {
-                            mainWindowView.Status += ".";
-                        }
-                    }
-                    mainWindowView.Status += "Libraries Indexes updated" + Environment.NewLine;
-
-
-                    //AsyncServerStreamingCall<PlatformInstallResp> avr = client.PlatformInstall(new PlatformInstallReq { Instance = instance, Architecture = "avr", PlatformPackage = "arduino" });
-                    //while (await avr.ResponseStream.MoveNext())
-                    //{
-                    //    SendProgress(avr.ResponseStream.Current);
-                    //}
-
-                    //AsyncServerStreamingCall<PlatformInstallResp> mega = client.PlatformInstall(new PlatformInstallReq { Instance = instance, Architecture = "megaavr", PlatformPackage = "arduino" });
-                    //while (await mega.ResponseStream.MoveNext())
-                    //{
-                    //    SendProgress(mega.ResponseStream.Current);
-                    //}
-
-                    //AsyncServerStreamingCall<PlatformInstallResp> samd = client.PlatformInstall(new PlatformInstallReq { Instance = instance, Architecture = "samd", PlatformPackage = "arduino" });
-                    //while (await samd.ResponseStream.MoveNext())
-                    //{
-                    //    SendProgress(samd.ResponseStream.Current);
-                    //}
-
-                    //AsyncServerStreamingCall<PlatformInstallResp> sparkfun = client.PlatformInstall(new PlatformInstallReq { Instance = instance, Architecture = "samd", PlatformPackage = "SparkFun" });
-                    //while (await sparkfun.ResponseStream.MoveNext())
-                    //{
-                    //    SendProgress(sparkfun.ResponseStream.Current);
-                    //}
-
-                    mainWindowView.Status += $"Arduino CLI initialized{Environment.NewLine}";
-                    mainWindowView.Progress = 0;
-                    mainWindowView.Busy = false;
-                    mainWindowView.RefreshingPorts = false;
-                    return true;
+                    channel = GrpcChannel.ForAddress("http://127.0.0.1:27160", new GrpcChannelOptions { Credentials = ChannelCredentials.Insecure });
+                    client = new ArduinoCoreService.ArduinoCoreServiceClient(channel);
+                    init = client.Init(new InitRequest());
                 }
                 catch (RpcException e)
                 {
+                    mainWindowView.Status += $"\r\n Failed to connect to gRPC due to {e.Message}";
+                    return false;
+                }
+
+
+                while (await init.ResponseStream.MoveNext())
+                {
+                    InitResponse resp = init.ResponseStream.Current;
+                    instance = resp.Instance;
+                }
+                if (instance != null)
+                {
+                    try
+                    {
+                        AsyncServerStreamingCall<UpdateIndexResponse> update = client.UpdateIndex(new UpdateIndexRequest { Instance = instance });
+                        while (await update.ResponseStream.MoveNext())
+                        {
+                            UpdateIndexResponse resp = update.ResponseStream.Current;
+                            if (resp.DownloadProgress != null)
+                            {
+                                if (!String.IsNullOrEmpty(resp.DownloadProgress.File))
+                                {
+                                    currentFile = resp.DownloadProgress.File;
+                                    totalSize = resp.DownloadProgress.TotalSize;
+                                }
+                                if (!resp.DownloadProgress.Completed)
+                                {
+                                    mainWindowView.Status += $"Downloading {currentFile}: {resp.DownloadProgress.Downloaded}/{totalSize}{Environment.NewLine}";
+                                }
+                                else
+                                {
+                                    mainWindowView.Status += $"{currentFile} download complete{Environment.NewLine}";
+                                }
+                            }
+
+                        }
+
+                        AsyncServerStreamingCall<UpdateCoreLibrariesIndexResponse> coreLibUpdate = client.UpdateCoreLibrariesIndex(new UpdateCoreLibrariesIndexRequest { Instance = instance });
+                        mainWindowView.Status += "Updating core libraries index";
+                        while (await coreLibUpdate.ResponseStream.MoveNext())
+                        {
+                            UpdateCoreLibrariesIndexResponse resp = coreLibUpdate.ResponseStream.Current;
+                            if (resp.DownloadProgress != null && !resp.DownloadProgress.Completed)
+                            {
+                                mainWindowView.Status += ".";
+                            }
+                        }
+                        mainWindowView.Status += "Core Library indexes updated" + Environment.NewLine;
+                        AsyncServerStreamingCall<UpdateLibrariesIndexResponse> liUpdate = client.UpdateLibrariesIndex(new UpdateLibrariesIndexRequest { Instance = instance });
+                        mainWindowView.Status += "Updating libraries index";
+                        while (await liUpdate.ResponseStream.MoveNext())
+                        {
+                            UpdateLibrariesIndexResponse resp = liUpdate.ResponseStream.Current;
+                            if (resp.DownloadProgress != null && !resp.DownloadProgress.Completed)
+                            {
+                                mainWindowView.Status += ".";
+                            }
+                        }
+                        mainWindowView.Status += "Libraries Indexes updated" + Environment.NewLine;
+
+
+                        //AsyncServerStreamingCall<PlatformInstallResp> avr = client.PlatformInstall(new PlatformInstallReq { Instance = instance, Architecture = "avr", PlatformPackage = "arduino" });
+                        //while (await avr.ResponseStream.MoveNext())
+                        //{
+                        //    SendProgress(avr.ResponseStream.Current);
+                        //}
+
+                        //AsyncServerStreamingCall<PlatformInstallResp> mega = client.PlatformInstall(new PlatformInstallReq { Instance = instance, Architecture = "megaavr", PlatformPackage = "arduino" });
+                        //while (await mega.ResponseStream.MoveNext())
+                        //{
+                        //    SendProgress(mega.ResponseStream.Current);
+                        //}
+
+                        //AsyncServerStreamingCall<PlatformInstallResp> samd = client.PlatformInstall(new PlatformInstallReq { Instance = instance, Architecture = "samd", PlatformPackage = "arduino" });
+                        //while (await samd.ResponseStream.MoveNext())
+                        //{
+                        //    SendProgress(samd.ResponseStream.Current);
+                        //}
+
+                        //AsyncServerStreamingCall<PlatformInstallResp> sparkfun = client.PlatformInstall(new PlatformInstallReq { Instance = instance, Architecture = "samd", PlatformPackage = "SparkFun" });
+                        //while (await sparkfun.ResponseStream.MoveNext())
+                        //{
+                        //    SendProgress(sparkfun.ResponseStream.Current);
+                        //}
+
+                        mainWindowView.Status += $"Arduino CLI initialized{Environment.NewLine}";
+                        mainWindowView.Progress = 0;
+                        mainWindowView.Busy = false;
+                        mainWindowView.RefreshingPorts = false;
+                        return true;
+                    }
+                    catch (RpcException e)
+                    {
+                        mainWindowView.Status += $"Arduino CLI failed to initalize please restart Installer{Environment.NewLine}";
+                        mainWindowView.Status += $"Error: {e.Message}{Environment.NewLine}";
+                        mainWindowView.Progress = 0;
+                        mainWindowView.Busy = true;
+                        mainWindowView.RefreshingPorts = true;
+                        return false;
+                    }
+
+                }
+                else
+                {
                     mainWindowView.Status += $"Arduino CLI failed to initalize please restart Installer{Environment.NewLine}";
-                    mainWindowView.Status += $"Error: {e.Message}{Environment.NewLine}";
                     mainWindowView.Progress = 0;
                     mainWindowView.Busy = true;
                     mainWindowView.RefreshingPorts = true;
@@ -205,14 +235,8 @@ namespace exInstaller.Utils
             }
             else
             {
-                mainWindowView.Status += $"Arduino CLI failed to initalize please restart Installer{Environment.NewLine}";
-                mainWindowView.Progress = 0;
-                mainWindowView.Busy = true;
-                mainWindowView.RefreshingPorts = true;
                 return false;
             }
-
-
         }
 
 
