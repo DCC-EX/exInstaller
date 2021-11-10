@@ -26,22 +26,22 @@
     <AvaloniaResource Include="Assets\**" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Avalonia" Version="0.10.7" />
-    <PackageReference Include="Avalonia.Desktop" Version="0.10.7" />
-    <PackageReference Include="Avalonia.ReactiveUI" Version="0.10.7" />
-    <PackageReference Include="Google.Protobuf" Version="3.18.0" />
-    <PackageReference Include="Grpc" Version="2.40.0" />
-    <PackageReference Include="Grpc.Core" Version="2.40.0" />
-    <PackageReference Include="Grpc.Core.Api" Version="2.40.0" />
-    <PackageReference Include="Grpc.Net.Client" Version="2.39.0" />
-    <PackageReference Include="Grpc.Net.Common" Version="2.39.0" />
-    <PackageReference Include="Grpc.Tools" Version="2.40.0">
+    <PackageReference Include="Avalonia" Version="0.10.10" />
+    <PackageReference Include="Avalonia.Desktop" Version="0.10.10" />
+    <PackageReference Include="Avalonia.ReactiveUI" Version="0.10.10" />
+    <PackageReference Include="Google.Protobuf" Version="3.19.1" />
+    <PackageReference Include="Grpc" Version="2.41.1" />
+    <PackageReference Include="Grpc.Core" Version="2.41.1" />
+    <PackageReference Include="Grpc.Core.Api" Version="2.41.1" />
+    <PackageReference Include="Grpc.Net.Client" Version="2.40.0" />
+    <PackageReference Include="Grpc.Net.Common" Version="2.40.0" />
+    <PackageReference Include="Grpc.Tools" Version="2.41.1">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
-    <PackageReference Include="MessageBox.Avalonia" Version="1.5.1" />
+    <PackageReference Include="MessageBox.Avalonia" Version="1.5.5" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
-    <PackageReference Include="System.IO.Ports" Version="5.0.1" />
+    <PackageReference Include="System.IO.Ports" Version="6.0.0" />
   </ItemGroup>
   <ItemGroup>
     <Protobuf Include="../arduino-cli-rpc/**/*.proto" />

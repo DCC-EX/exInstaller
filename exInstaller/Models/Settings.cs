@@ -43,7 +43,7 @@ namespace exInstaller.Models
             string config;
             try
             {
-               config = client.DownloadString("https://raw.githubusercontent.com/DCC-EX/CommandStation-EX/master/config.json");
+               config = client.DownloadString("https://raw.githubusercontent.com/DCC-EX/CommandStation-EX/dex/installer-config/config.json");
             } catch(WebException e)
             {
                 config = File.ReadAllText("./config.json");

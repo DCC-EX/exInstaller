@@ -354,13 +354,13 @@ namespace exInstaller.Utils
             BoardListResponse boards = client.BoardList(new BoardListRequest { Instance = instance });
             foreach (DetectedPort port in boards.Ports)
             {
-                if (port.Boards.Count > 0)
+                if (port.MatchingBoards.Count > 0)
                 {
 
-                    mainWindowView.Status += $"Detected a {port.Boards[0].Name} on port {port.Address}{Environment.NewLine}";
+                    mainWindowView.Status += $"Detected a {port.MatchingBoards[0].Name} on port {port.Port}{Environment.NewLine}";
                     await Dispatcher.UIThread.InvokeAsync(() =>
                      {
-                         mainWindowView.AvailableComPorts.Add(new Tuple<string, string>(port.Address, $"{port.Boards[0].Name}"));
+                         mainWindowView.AvailableComPorts.Add(new Tuple<string, string>(port.Port, $"{port.MatchingBoards[0].Name}"));
 
                      });
                     Thread.Sleep(1000);
