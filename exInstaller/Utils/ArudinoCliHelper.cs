@@ -75,6 +75,29 @@ namespace exInstaller.Utils
 
         }
 
+        private void RunCliCommand(string command)
+        {
+            mainWindowView.Busy = true;
+            ProcessStartInfo start = new ProcessStartInfo();
+            start.FileName = $@"arduino-cli";
+            start.Arguments = $"{command}";
+            start.UseShellExecute = false;
+            start.WindowStyle = ProcessWindowStyle.Hidden;
+            start.RedirectStandardOutput = true;
+            start.RedirectStandardError = true;
+            start.CreateNoWindow = true;
+            Process process = new Process();
+            process.OutputDataReceived += Process_OutputDataReceived;
+            process.ErrorDataReceived += Process_ErrorDataReceived;
+            process.StartInfo = start;
+            process.Start();
+            mainWindowView.Status += process.StandardOutput.ReadToEnd();
+            process.WaitForExit();
+            mainWindowView.Busy = false;
+        }
+
+        
+
         bool ProcessIsRunning(Process p)
         {
             bool isRunning;
@@ -303,6 +326,7 @@ namespace exInstaller.Utils
             }
             return success;
         }
+
         /// <summary>
         /// Attempt to compile and upload Arudino Sketch
         /// </summary>
@@ -457,6 +481,12 @@ namespace exInstaller.Utils
         }
 
         private void Process_OutputDataReceived(object sender, DataReceivedEventArgs e)
+        {
+            Console.WriteLine(e.Data);
+            mainWindowView.Status += e.Data;
+        }
+
+        private void Process_ErrorDataReceived(object sender, DataReceivedEventArgs e)
         {
             Console.WriteLine(e.Data);
             mainWindowView.Status += e.Data;

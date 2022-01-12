@@ -37,6 +37,7 @@ namespace exInstaller.ViewModels
         string getZip = "/zipball/{0}";
         string branches = "/branches";
         WizardViewModel wizard;
+        bool gRPC = false;
 
         public MainWindowViewModel()
         {
@@ -293,11 +294,13 @@ namespace exInstaller.ViewModels
                     }
                 }
                 helper = new ArudinoCliHelper(this);
-                bool cli = await helper.Init();
-                if (cli)
+                gRPC = await helper.Init();
+                if (!gRPC)
                 {
-                    SelectedConfig = Configs[1];
+                    Status += $"Warning: Arduino CLI is not running in daemon mode. {Environment.NewLine}This may result in flash or compile errors and displays not updating in realtime. {Environment.NewLine} This is not the fault of the installer but of how process is ran. Please be patient and it will update.";
                 }
+                SelectedConfig = Configs[1];
+
             }
             else
             {
