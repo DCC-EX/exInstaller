@@ -67,7 +67,6 @@ namespace exInstaller.Utils
                 start.RedirectStandardError = false;
                 daemon.StartInfo = start;
                 daemon.Start();
-
             }
             catch (Exception ex)
             {
@@ -110,6 +109,7 @@ namespace exInstaller.Utils
                     count++;
                 }
 
+
                 mainWindowView.Status += Environment.NewLine;
 
                 AsyncServerStreamingCall<InitResponse> init;
@@ -129,7 +129,15 @@ namespace exInstaller.Utils
                 while (await init.ResponseStream.MoveNext())
                 {
                     InitResponse resp = init.ResponseStream.Current;
-                    instance = resp.Instance;
+                    if (resp.InitProgress.TaskProgress.Completed)
+                    {
+                        break;
+                    }
+                    else
+                    {
+                        mainWindowView.Status += ".";
+                        continue;
+                    }
                 }
                 if (instance != null)
                 {
@@ -304,7 +312,7 @@ namespace exInstaller.Utils
         {
             bool success = false;
             mainWindowView.RefreshingPorts = true;
-            AsyncServerStreamingCall<UploadResponse> upload = client.Upload(new UploadRequest { Instance = instance, Fqbn = fqbn, Port = port, SketchPath = location, Verbose = true, Verify = true });
+            AsyncServerStreamingCall<UploadResponse> upload = client.Upload(new UploadRequest { Instance = instance, Fqbn = fqbn, Port = new Port { Address = port }, SketchPath = location, Verbose = true, Verify = true });
             try
             {
                 StringBuilder sb = new StringBuilder();
@@ -360,7 +368,7 @@ namespace exInstaller.Utils
                     mainWindowView.Status += $"Detected a {port.MatchingBoards[0].Name} on port {port.Port}{Environment.NewLine}";
                     await Dispatcher.UIThread.InvokeAsync(() =>
                      {
-                         mainWindowView.AvailableComPorts.Add(new Tuple<string, string>(port.Port, $"{port.MatchingBoards[0].Name}"));
+                         mainWindowView.AvailableComPorts.Add(new Tuple<string, string>(port.Port.Address, $"{port.MatchingBoards[0].Name}"));
 
                      });
                     Thread.Sleep(1000);
