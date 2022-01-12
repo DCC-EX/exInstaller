@@ -19,7 +19,7 @@ package cc.arduino.cli.monitor.v1;
 
 option go_package = "github.com/arduino/arduino-cli/rpc/cc/arduino/cli/monitor/v1;monitor";
 
-import "../../../../../google/protobuf/struct.proto";
+import "google/protobuf/struct.proto";
 
 // MonitorService provides services for boards monitor
 service MonitorService {

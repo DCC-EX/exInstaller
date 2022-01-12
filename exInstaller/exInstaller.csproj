@@ -44,7 +44,7 @@
     <PackageReference Include="System.IO.Ports" Version="6.0.0" />
   </ItemGroup>
   <ItemGroup>
-    <Protobuf Include="../arduino-cli-rpc/**/*.proto" />
+    <Protobuf Include="../arduino-cli-rpc/**/*.proto" ProtoRoot="../arduino-cli-rpc" GrpcServices="Client" />
   </ItemGroup>
   <ItemGroup Condition=" '$(RuntimeIdentifier)' == 'linux-x86' ">
     <None Update="arduino-cli-runtimes\Linux_32bit\arduino-cli">

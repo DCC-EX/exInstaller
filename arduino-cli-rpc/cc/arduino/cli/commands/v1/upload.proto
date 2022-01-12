@@ -19,8 +19,8 @@ package cc.arduino.cli.commands.v1;
 
 option go_package = "github.com/arduino/arduino-cli/rpc/cc/arduino/cli/commands/v1;commands";
 
-import "common.proto";
-import "port.proto";
+import "cc/arduino/cli/commands/v1/common.proto";
+import "cc/arduino/cli/commands/v1/port.proto";
 
 message UploadRequest {
   // Arduino Core Service instance from the `Init` response.
@@ -162,6 +162,9 @@ message SupportedUserFieldsRequest {
   // necessary to pick the right upload tool for the board specified
   // with the FQBN.
   string protocol = 3;
+  // If an FQBN is not provided but both protocol and address are
+  // we can try and detect the FQBN using this information.
+  string address = 4;
 }
 
 message UserField {

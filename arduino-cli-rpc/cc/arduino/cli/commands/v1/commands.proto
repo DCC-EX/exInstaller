@@ -19,14 +19,15 @@ package cc.arduino.cli.commands.v1;
 
 option go_package = "github.com/arduino/arduino-cli/rpc/cc/arduino/cli/commands/v1;commands";
 
-import "../../../../../google/rpc/status.proto";
+import "google/rpc/status.proto";
 
-import "common.proto";
-import "board.proto";
-import "compile.proto";
-import "core.proto";
-import "upload.proto";
-import "lib.proto";
+import "cc/arduino/cli/commands/v1/common.proto";
+import "cc/arduino/cli/commands/v1/board.proto";
+import "cc/arduino/cli/commands/v1/compile.proto";
+import "cc/arduino/cli/commands/v1/core.proto";
+import "cc/arduino/cli/commands/v1/monitor.proto";
+import "cc/arduino/cli/commands/v1/upload.proto";
+import "cc/arduino/cli/commands/v1/lib.proto";
 
 // The main Arduino Platform service API
 service ArduinoCoreService {
@@ -62,6 +63,9 @@ service ArduinoCoreService {
 
   // Get the version of Arduino CLI in use.
   rpc Version(VersionRequest) returns (VersionResponse) {}
+
+  // Create a new Sketch
+  rpc NewSketch(NewSketchRequest) returns (NewSketchResponse) {}
 
   // Returns all files composing a Sketch
   rpc LoadSketch(LoadSketchRequest) returns (LoadSketchResponse) {}
@@ -175,6 +179,13 @@ service ArduinoCoreService {
 
   // List the installed libraries.
   rpc LibraryList(LibraryListRequest) returns (LibraryListResponse);
+
+  // Open a monitor connection to a board port
+  rpc Monitor(stream MonitorRequest) returns (stream MonitorResponse);
+
+  // Returns the parameters that can be set in the MonitorRequest calls
+  rpc EnumerateMonitorPortSettings(EnumerateMonitorPortSettingsRequest)
+      returns (EnumerateMonitorPortSettingsResponse);
 }
 
 message CreateRequest {}
@@ -270,6 +281,23 @@ message VersionRequest {}
 message VersionResponse {
   // The version of Arduino CLI in use.
   string version = 1;
+}
+
+message NewSketchRequest {
+  // Arduino Core Service instance from the Init response.
+  Instance instance = 1;
+  // New sketch name
+  string sketch_name = 2;
+  // Optional: create a Sketch in this directory
+  // (used as "Sketchbook" directory).
+  // Default Sketchbook directory "directories.User" is used if sketch_dir is
+  // empty.
+  string sketch_dir = 3;
+}
+
+message NewSketchResponse {
+  // Absolute path to a main sketch file
+  string main_file = 1;
 }
 
 message LoadSketchRequest {
