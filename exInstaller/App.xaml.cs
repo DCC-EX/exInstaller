@@ -4,7 +4,7 @@ using Avalonia.Markup.Xaml;
 using exInstaller.ViewModels;
 using exInstaller.Views;
 using Avalonia.ReactiveUI;
-
+using System.Reflection;
 
 namespace exInstaller
 {
@@ -23,6 +23,7 @@ namespace exInstaller
                 {
                     DataContext = new MainWindowViewModel(),
                 };
+                desktop.MainWindow.Title += $" {Assembly.GetExecutingAssembly().GetName().Version}";
             }
 
             base.OnFrameworkInitializationCompleted();
