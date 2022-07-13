@@ -1139,7 +1139,7 @@ namespace exInstaller.ViewModels
                      ContentMessage = $"Would you like to update from {oldVerParsed} to version {newVerParsed}?",
                      ButtonDefinitions = new[] {
                         new ButtonDefinition {Name = "No"},
-                        new ButtonDefinition {Name = "Yes", Type = ButtonType.Colored}
+                        new ButtonDefinition {Name = "Yes"}
                      },
                      WindowStartupLocation = WindowStartupLocation.CenterScreen
                  }); ;

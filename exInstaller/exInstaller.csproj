@@ -1,18 +1,18 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFramework>netcoreapp5.0</TargetFramework>
+    <TargetFramework>net6.0</TargetFramework>
     <RuntimeIdentifiers>win-x86;win-x64;osx-x64;linux-x64;linux-arm;linux-arm64</RuntimeIdentifiers>
     <StartupObject>exInstaller.Program</StartupObject>
     <AssemblyName>exInstaller</AssemblyName>
-    <Version>2.4.0.1</Version>
+    <Version>2.5.0.0</Version>
     <Authors>Dex's Lab</Authors>
     <Company>DCC Extended</Company>
     <PackageProjectUrl>https://dcc-ex.github.io/</PackageProjectUrl>
     <RepositoryUrl>https://github.com/DCC-EX/exnstaller</RepositoryUrl>
     <PackageIcon>dcc-ex-logo.png</PackageIcon>
     <ApplicationIcon>Assets\dccex-logo.ico</ApplicationIcon>
-    <AssemblyVersion>2.4.0.0</AssemblyVersion>
+    <AssemblyVersion>2.5.0.0</AssemblyVersion>
     <Product>exInstaller</Product>
     <Platforms>AnyCPU;x64;x86</Platforms>
   </PropertyGroup>
@@ -26,22 +26,22 @@
     <AvaloniaResource Include="Assets\**" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Avalonia" Version="0.10.4" />
-    <PackageReference Include="Avalonia.Desktop" Version="0.10.4" />
-    <PackageReference Include="Avalonia.ReactiveUI" Version="0.10.4" />
-    <PackageReference Include="Google.Protobuf" Version="3.17.0" />
-    <PackageReference Include="Grpc" Version="2.37.1" />
-    <PackageReference Include="Grpc.Core" Version="2.37.1" />
-    <PackageReference Include="Grpc.Core.Api" Version="2.37.1" />
-    <PackageReference Include="Grpc.Net.Client" Version="2.37.0" />
-    <PackageReference Include="Grpc.Net.Common" Version="2.37.0" />
-    <PackageReference Include="Grpc.Tools" Version="2.37.1">
+    <PackageReference Include="Avalonia" Version="0.10.16" />
+    <PackageReference Include="Avalonia.Desktop" Version="0.10.16" />
+    <PackageReference Include="Avalonia.ReactiveUI" Version="0.10.16" />
+    <PackageReference Include="Google.Protobuf" Version="3.21.2" />
+    <PackageReference Include="Grpc" Version="2.46.3" />
+    <PackageReference Include="Grpc.Core" Version="2.46.3" />
+    <PackageReference Include="Grpc.Core.Api" Version="2.47.0" />
+    <PackageReference Include="Grpc.Net.Client" Version="2.47.0" />
+    <PackageReference Include="Grpc.Net.Common" Version="2.47.0" />
+    <PackageReference Include="Grpc.Tools" Version="2.47.0">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
-    <PackageReference Include="MessageBox.Avalonia" Version="1.2.0" />
+    <PackageReference Include="MessageBox.Avalonia" Version="2.0.1" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
-    <PackageReference Include="System.IO.Ports" Version="5.0.1" />
+    <PackageReference Include="System.IO.Ports" Version="6.0.0" />
   </ItemGroup>
   <ItemGroup>
     <Protobuf Include="../arduino-cli-rpc/**/*.proto" />
