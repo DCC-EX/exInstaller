@@ -32,13 +32,9 @@ namespace exInstaller.ViewModels
         ArudinoCliHelper helper;
         StreamWriter logWriter;
         //Signature sig = new Signature(new Identity("random", "random@random.com"), DateTimeOffset.Now);
-        string githubAPI = "https://api.github.com/repos/";
-        string releases = "/releases";
-        string getZip = "/zipball/{0}";
-        string branches = "/branches";
-        WizardViewModel wizard;
-        bool gRPC = false;
-
+        string githubAPI = "https://api.github.com/repos";
+        string releases = "releases";
+        string zipBall = "zipball";
         public MainWindowViewModel()
         {
             EnableNetworking = false;
@@ -51,6 +47,11 @@ namespace exInstaller.ViewModels
             EnableNetworking = false;
             Port = 2560;
             Hostname = "DCCEX";
+            SelectedBranch = "master";
+            Branches = new ObservableCollection<string>()
+            {
+                "master"
+            };
             LCDAddress = 0x27;
             LCDColumns = 16;
             LCDLines = 2;
@@ -212,8 +213,23 @@ namespace exInstaller.ViewModels
                     EnableAdvanced = false;
                 }
                 //SelectedSupportedMotorShields = new ObservableCollection<MotorShield>(SelectedBoard.SupportedMotoShields);
+                Task getBranches = new Task(() =>
+                {
+                    Status += $"Grabbing branches {SelectedConfig.Name}";
+                    WebClient client = new WebClient();
+                    client.Headers.Add("User-Agent: exInstaller");
 
-                GitCode(SelectedConfig.Git, SelectedConfig.Name, true);
+                    string repoBranches = client.DownloadString(new Uri($"{githubAPI}/{SelectedConfig.Git}/branches"));
+                    JArray obj = JArray.Parse(repoBranches);
+                    ObservableCollection<string> newBranches = new ObservableCollection<string>();
+                    foreach (JObject data in obj)
+                    {
+                        newBranches.Add((string)data["name"]);
+                    }
+                    Branches = newBranches;
+                });
+                getBranches.Start();
+                //GitCode(SelectedConfig.Git, SelectedConfig.Name, true);
                 Task detect = new Task(helper.DetectBoard);
                 detect.Start();
             }
@@ -274,7 +290,7 @@ namespace exInstaller.ViewModels
             }
             if (!String.IsNullOrEmpty(destRuntime))
             {
-                if (!File.Exists(destRuntime)  && File.Exists(cliRuntime))
+                if (!File.Exists(destRuntime) && File.Exists(cliRuntime))
                 {
                     File.Copy(cliRuntime, destRuntime);
                     if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux) || RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
@@ -297,7 +313,8 @@ namespace exInstaller.ViewModels
                 gRPC = await helper.Init();
                 if (!gRPC)
                 {
-                    Status += $"Warning: Arduino CLI is not running in daemon mode. {Environment.NewLine}This may result in flash or compile errors and displays not updating in realtime. {Environment.NewLine} This is not the fault of the installer but of how process is ran. Please be patient and it will update.";
+                    Configs = new ObservableCollection<Config>(await Settings.DefaultConfigs("master"));
+                    SelectedConfig = Configs[1];
                 }
                 SelectedConfig = Configs[1];
 
@@ -350,12 +367,12 @@ namespace exInstaller.ViewModels
         /// </summary>
 
         //TODO: Move this to not be hard coded
-        public List<Config> Configs
+        public ObservableCollection<Config> _configs;
+        public ObservableCollection<Config> Configs
         {
-            get
-            {
-                return Settings.DefaultConfigs();
-            }
+            get => _configs;
+            set => this.RaiseAndSetIfChanged(ref _configs, value);
+
         }
 
         /// <summary>
@@ -405,6 +422,22 @@ namespace exInstaller.ViewModels
             set => this.RaiseAndSetIfChanged(ref _availableComPorts, value);
         }
 
+        /// <summary>
+        /// List of Branches in Git Repo for Selected Config
+        /// </summary>
+        private ObservableCollection<string> _branches;
+        public ObservableCollection<string> Branches
+        {
+            get
+            {
+                return _branches;
+            }
+            set
+            {
+                this.RaiseAndSetIfChanged(ref _branches, value);
+            }
+        }
+
         private Board _selectedBoard;
         public Board SelectedBoard
         {
@@ -431,42 +464,23 @@ namespace exInstaller.ViewModels
             set => this.RaiseAndSetIfChanged(ref _selectedComPort, value);
         }
 
-        private ObservableCollection<string> _currentBranch;
-        public ObservableCollection<string> CurrentBranch
+        private string _selectedBranch;
+
+        public string SelectedBranch
         {
-            get => _currentBranch;
-            set => this.RaiseAndSetIfChanged(ref _currentBranch, value);
+            get
+            {
+                return _selectedBranch;
+            }
+            set
+            {
+                this.RaiseAndSetIfChanged(ref _selectedBranch, value);
+                if (!String.IsNullOrEmpty(SelectedConfig.Name))
+                {
+                    GitCode($"{githubAPI}/{SelectedConfig.Git}/{zipBall}/{value}", $"{SelectedConfig.Name}_{value}");
+                }
+            }
         }
-
-        //private string _selectedBranch;
-
-        //public string SelectedBranch
-        //{
-        //    get
-        //    {
-        //        return _selectedBranch;
-        //    }
-        //    set
-        //    {
-        //        _selectedBranch = value;
-        //        //RaiseAndSetIfChanged("SelectedBranch");
-        //        using (Repository repo = new Repository($"./{SelectedConfig.Name}"))
-        //        {
-        //            Branch branch = repo.Branches[$"origin/{SelectedBranch}"];
-
-        //            Branch localbranch = repo.Branches[SelectedBranch];
-        //            if (localbranch == null)
-        //            {
-        //                // repository return null object when branch not exists
-        //                localbranch = repo.CreateBranch(SelectedBranch, branch.Tip);
-        //            }
-        //            Commands.Checkout(repo, localbranch);
-
-
-        //        }
-
-        //    }
-        //}
 
         private string _ssid;
         public string SSID
@@ -873,12 +887,12 @@ namespace exInstaller.ViewModels
                     bool success = await helper.GetLibrary(dep.Name);
                     if (!success)
                     {
-                        await GitCode(githubAPI + dep.Repo + String.Format(getZip, "master"), dep.Location);
+                        await GitCode($"{githubAPI}/{dep.Repo}/{zipBall}/master", dep.Location);
                     }
                 }
                 else
                 {
-                    await GitCode(githubAPI + dep.Repo + String.Format(getZip, "master"), dep.Location);
+                    await GitCode($"{githubAPI}/{dep.Repo}/{zipBall}/master", dep.Location);
                 }
             }
             return true;
@@ -893,25 +907,28 @@ namespace exInstaller.ViewModels
             RefreshingPorts = true;
             Status += $"Changing MotorShield options{Environment.NewLine}";
             Progress = 1;
-
+            if (!File.Exists($@"{SelectedConfig.Name}_{SelectedBranch}/{SelectedConfig.Name}_{SelectedBranch}.ino"))
+            {
+                File.Move($@"{SelectedConfig.Name}_{SelectedBranch}/{SelectedConfig.Name}.ino", $@"{SelectedConfig.Name}_{SelectedBranch}/{SelectedConfig.Name}_{SelectedBranch}.ino");
+            }
             Progress = 2;
             string[] config = new string[0];
             switch (SelectedConfig.Name)
             {
                 case "BaseStationClassic":
                     {
-                        config = File.ReadAllLines($@"{SelectedConfig.Name}/{SelectedConfig.ConfigFile}");
-                        config[16] = $"#define MOTOR_SHIELD_TYPE   {(int)SelectedMotorShield.ShieldType}";
+                        config = File.ReadAllLines($@"{SelectedConfig.Name}_{SelectedBranch}/{SelectedConfig.ConfigFile}");
+                        config[16] = $"#define MOTOR_SHIELD_TYPE   {SelectedMotorShield.Declaration}";
                         break;
                     }
                 case "CommandStation-EX":
                     {
-                        config = File.ReadAllLines($@"{SelectedConfig.Name}/config.example.h");
+                        config = File.ReadAllLines($@"{SelectedConfig.Name}_{SelectedBranch}/config.example.h");
                         for (int i = 0; i < config.Length; i++)
                         {
                             if (config[i].Contains("#define MOTOR_SHIELD_TYPE"))
                             {
-                                config[i] = $"#define MOTOR_SHIELD_TYPE {MotorShield.ExMotoShieldDictonary[SelectedMotorShield.ShieldType]}";
+                                config[i] = $"#define MOTOR_SHIELD_TYPE {SelectedMotorShield.Declaration}";
                             }
 
                             if (config[i].Contains("#define ENABLE_ETHERNET") && EnableEthernet)
@@ -988,24 +1005,24 @@ namespace exInstaller.ViewModels
                 Status += $"We could not find proper {SelectedConfig.ConfigFile} for your selections please try again";
                 return;
             }
-            File.WriteAllLines($@"{SelectedConfig.Name}/{SelectedConfig.ConfigFile}", config);
+            File.WriteAllLines($@"{SelectedConfig.Name}_{SelectedBranch}/{SelectedConfig.ConfigFile}", config);
             Thread.Sleep(1000);
             Progress = 3;
             Status += $"Compiling {SelectedConfig.DisplayName} Sketch{Environment.NewLine}";
-            var dir = new DirectoryInfo($@"./{SelectedConfig.Name}");
+            var dir = new DirectoryInfo($@"./{SelectedConfig.Name}_{SelectedBranch}");
             dir.CreateSubdirectory("./build");
             foreach (var file in dir.EnumerateDirectories("_git2*"))
             {
                 file.Delete();
             }
-            bool compSucc = await helper.ArduinoComplieSketch(SelectedBoard.FQBN, $@"./{SelectedConfig.Name}/{SelectedConfig.InputFileLocation}");
+            bool compSucc = await helper.ArduinoComplieSketch(SelectedBoard.FQBN, $@"./{SelectedConfig.Name}_{SelectedBranch}/{SelectedConfig.InputFileLocation}");
             if (compSucc)
             {
                 RefreshingPorts = true;
                 Thread.Sleep(5000);
                 Status += $"Uploading to {SelectedComPort}" + Environment.NewLine;
 
-                bool upSuccess = await helper.UploadSketch(SelectedBoard.FQBN, SelectedComPort.Item1, $@"./{SelectedConfig.Name}/{SelectedConfig.InputFileLocation}");
+                bool upSuccess = await helper.UploadSketch(SelectedBoard.FQBN, SelectedComPort.Item1, $@"./{SelectedConfig.Name}_{SelectedBranch}/{SelectedConfig.InputFileLocation}");
                 if (upSuccess)
                 {
                     Status += "Uploaded successfully" + Environment.NewLine;
@@ -1028,6 +1045,10 @@ namespace exInstaller.ViewModels
 
         private async Task GitCode(string url, string location, bool useRelease = false)
         {
+            if (String.IsNullOrEmpty(SelectedConfig.Name))
+            {
+                return;
+            }
             string path = AppDomain.CurrentDomain.BaseDirectory;
             if (!Directory.Exists(location))
             {
@@ -1050,7 +1071,7 @@ namespace exInstaller.ViewModels
                 {
                     webClient.Headers.Add("User-Agent: exInstaller");
                     webClient.DownloadFile(new Uri(url), $"{path}{location}.zip");
-                    Status += $"Extracting Zip file to {path}{location}";
+                    Status += $"Extracting Zip file to {path}{location} {Environment.NewLine}";
                     ZipFile.ExtractToDirectory($"{location}.zip", ".");
                 }
                 catch (Exception e)
@@ -1064,10 +1085,11 @@ namespace exInstaller.ViewModels
                     {
                         loc = location.Split("/")[1];
                     }
-                    if (dir.Contains(loc) || dir.Replace("-", "").Contains(loc))
+                    if (dir.Contains(loc) || dir.Replace("-", "").Contains(loc) || dir.Contains("DCC-EX"))
                     {
                         Directory.Move(dir, $"{location}");
                     }
+
                 }
             }
             else
@@ -1140,14 +1162,14 @@ namespace exInstaller.ViewModels
                      ContentMessage = $"Would you like to update from {oldVerParsed} to version {newVerParsed}?",
                      ButtonDefinitions = new[] {
                         new ButtonDefinition {Name = "No"},
-                        new ButtonDefinition {Name = "Yes", Type = ButtonType.Colored}
+                        new ButtonDefinition {Name = "Yes"}
                      },
                      WindowStartupLocation = WindowStartupLocation.CenterScreen
                  }); ;
                             string reply = await messageBoxCustomWindow.Show();
                             if (reply.Equals("No"))
                             {
-                                Directory.Delete($"{location}-new",true);
+                                Directory.Delete($"{location}-new", true);
                                 Status += $"Version {oldVerParsed} is still installed" + Environment.NewLine;
                             }
                             else

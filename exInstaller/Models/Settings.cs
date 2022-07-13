@@ -36,21 +36,11 @@ namespace exInstaller.Models
 
     public static class Settings
     {
-
-        public static List<Config> DefaultConfigs()
-        {
+        public async static Task<List<Config>> DefaultConfigs(string branch) {
             WebClient client = new WebClient();
-            string config;
-            try
-            {
-               config = client.DownloadString("https://raw.githubusercontent.com/DCC-EX/CommandStation-EX/dex/installer-config/config.json");
-            } catch(WebException e)
-            {
-                config = File.ReadAllText("./config.json");
-            }
+            string config = client.DownloadString($"https://raw.githubusercontent.com/DCC-EX/CommandStation-EX/{branch}/installer.json");
             return JsonSerializer.Deserialize<List<Config>>(config);
         }
-
         //{
         //    {
         //        new Config

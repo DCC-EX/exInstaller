@@ -39,6 +39,9 @@
                 </DataTemplate>
               </ComboBox.ItemTemplate>
             </ComboBox>
+            <TextBlock Margin="5">Select Branch</TextBlock>
+            <ComboBox Margin="5" Width="250" Items="{Binding Branches}" IsEnabled="{Binding !Busy}" Focusable="{Binding !Busy}" SelectedItem="{Binding SelectedBranch}">
+            </ComboBox>
             <!--<TextBlock Margin="5" Style="{DynamicResource MaterialDesignSubtitle2TextBlock}">Select Repo Branch</TextBlock>
                         <ComboBox Margin="5" Style="{DynamicResource MaterialDesignComboBox}" Items="{Binding Branches}" SelectedItem="{Binding SelectedBranch}"></ComboBox>-->
             <TextBlock Margin="5">Select Board Type</TextBlock>
@@ -50,7 +53,7 @@
               </ComboBox.ItemTemplate>
             </ComboBox>
             <TextBlock Margin="5">Select Motor Shield</TextBlock>
-            <ComboBox Margin="5" Width="250" Items="{Binding SelectedSupportedMotorShields}" IsEnabled="{Binding !Busy}" Focusable="{Binding !Busy}" SelectedItem="{Binding SelectedMotorShield}">
+            <ComboBox Margin="5" Width="250" Items="{Binding SelectedSupportedMotorShields}"  IsEnabled="{Binding !Busy}" Focusable="{Binding !Busy}" SelectedItem="{Binding SelectedMotorShield}">
               <ComboBox.ItemTemplate>
                 <DataTemplate>
                   <TextBlock Text="{Binding Name}"  />
