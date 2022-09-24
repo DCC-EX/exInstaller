@@ -88,25 +88,23 @@ namespace exInstaller.Utils
             }
             
             mainWindowView.Status += Environment.NewLine;
+            CreateRequest request = new CreateRequest();
             
-            AsyncServerStreamingCall<InitResponse> init;
+            CreateResponse init;
             try
             {
                 channel = GrpcChannel.ForAddress("http://127.0.0.1:27160", new GrpcChannelOptions { Credentials = ChannelCredentials.Insecure });
                 client = new ArduinoCoreService.ArduinoCoreServiceClient(channel);
-                init = client.Init(new InitRequest());
+                init = client.Create(request);
             } catch (RpcException e)
             {
                 mainWindowView.Status += $"\r\n Failed to connect to gRPC due to {e.Message}";
                 return false;
             }
 
+            instance = init.Instance;
 
-            while (await init.ResponseStream.MoveNext())
-            {
-                InitResponse resp = init.ResponseStream.Current;
-                instance = resp.Instance;
-            }
+            
             if (instance != null)
             {
                 try
@@ -276,7 +274,9 @@ namespace exInstaller.Utils
         {
             bool success = false;
             mainWindowView.RefreshingPorts = true;
-            AsyncServerStreamingCall<UploadResponse> upload = client.Upload(new UploadRequest { Instance = instance, Fqbn = fqbn, Port = port, SketchPath = location, Verbose = true, Verify = true });
+            Port p = new Port();
+            p.Address = port;
+            AsyncServerStreamingCall<UploadResponse> upload = client.Upload(new UploadRequest { Instance = instance, Fqbn = fqbn, Port = p, SketchPath = location, Verbose = true, Verify = true });
             try
             {
                 StringBuilder sb = new StringBuilder();
@@ -326,13 +326,13 @@ namespace exInstaller.Utils
             BoardListResponse boards = client.BoardList(new BoardListRequest { Instance = instance });
             foreach (DetectedPort port in boards.Ports)
             {
-                if (port.Boards.Count > 0)
+                if (port.MatchingBoards.Count > 0)
                 {
 
-                    mainWindowView.Status += $"Detected a {port.Boards[0].Name} on port {port.Address}{Environment.NewLine}";
+                    mainWindowView.Status += $"Detected a {port.MatchingBoards[0].Name} on port {port.Port.Address}{Environment.NewLine}";
                     await Dispatcher.UIThread.InvokeAsync(() =>
                      {
-                         mainWindowView.AvailableComPorts.Add(new Tuple<string, string>(port.Address, $"{port.Boards[0].Name}"));
+                         mainWindowView.AvailableComPorts.Add(new Tuple<string, string>(port.Port.Address, $"{port.MatchingBoards[0].Name}"));
 
                      });
                     Thread.Sleep(1000);

@@ -45,9 +45,39 @@ message LibraryInstallRequest {
   // Set to true to skip installation of specified library's dependencies,
   // defaults to false.
   bool no_deps = 4;
+  // Set to true to skip installation if a different version of the library or
+  // one of its dependencies is already installed, defaults to false.
+  bool no_overwrite = 5;
+  // Install the library and dependencies in the specified location
+  LibraryInstallLocation install_location = 6;
+}
+
+enum LibraryInstallLocation {
+  // In the `libraries` subdirectory of the user directory (sketchbook). This is
+  // the default if not specified.
+  LIBRARY_INSTALL_LOCATION_USER = 0;
+  // In the configured 'builtin.libraries' directory.
+  LIBRARY_INSTALL_LOCATION_BUILTIN = 1;
 }
 
 message LibraryInstallResponse {
+  // Progress of the library download.
+  DownloadProgress progress = 1;
+  // Description of the current stage of the installation.
+  TaskProgress task_progress = 2;
+}
+
+message LibraryUpgradeRequest {
+  // Arduino Core Service instance from the `Init` response.
+  Instance instance = 1;
+  // Name of the library.
+  string name = 2;
+  // Set to true to skip installation of specified library's dependencies,
+  // defaults to false.
+  bool no_deps = 3;
+}
+
+message LibraryUpgradeResponse {
   // Progress of the library download.
   DownloadProgress progress = 1;
   // Description of the current stage of the installation.
@@ -250,7 +280,7 @@ message Library {
   // (e.g., `arduino:avr@1.8.2`).
   string container_platform = 14;
   // Value of the `name` field in library.properties.
-  string real_name = 16;
+  string real_name = 16 [ deprecated = true ];
   // Value of the `dot_a_linkage` field in library.properties.
   bool dot_a_linkage = 17;
   // Value of the `precompiled` field in library.properties.
@@ -287,8 +317,8 @@ enum LibraryLayout {
 }
 
 enum LibraryLocation {
-  // In the `libraries` subdirectory of the Arduino IDE installation.
-  LIBRARY_LOCATION_IDE_BUILTIN = 0;
+  // In the configured 'builtin.libraries' directory.
+  LIBRARY_LOCATION_BUILTIN = 0;
   // In the `libraries` subdirectory of the user directory (sketchbook).
   LIBRARY_LOCATION_USER = 1;
   // In the `libraries` subdirectory of a platform.
@@ -297,6 +327,8 @@ enum LibraryLocation {
   // this indicates the library is in the `libraries` subdirectory of a
   // platform referenced by the board's platform.
   LIBRARY_LOCATION_REFERENCED_PLATFORM_BUILTIN = 3;
+  // Outside the `libraries` folders managed by the CLI.
+  LIBRARY_LOCATION_UNMANAGED = 4;
 }
 
 message ZipLibraryInstallRequest {

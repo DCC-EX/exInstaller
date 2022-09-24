@@ -44,6 +44,8 @@ message TaskProgress {
   string message = 2;
   // Whether the task is complete.
   bool completed = 3;
+  // Amount in percent of the task completion (optional)
+  float percent = 4;
 }
 
 message Programmer {
@@ -76,6 +78,21 @@ message Platform {
   // If true this Platform has been installed manually in the user' sketchbook
   // hardware folder
   bool manually_installed = 9;
+  // If true this Platform has been deprecated
+  bool deprecated = 10;
+  // Type of the platform.
+  repeated string type = 11;
+}
+
+message InstalledPlatformReference {
+  // Platform ID (e.g., `arduino:avr`).
+  string id = 1;
+  // Version of the platform.
+  string version = 2;
+  // Installation directory of the platform
+  string install_dir = 3;
+  // 3rd party platform URL
+  string package_url = 4;
 }
 
 message Board {
@@ -83,5 +100,12 @@ message Board {
   string name = 1;
   // Fully qualified board name used to identify the board to machines. The FQBN
   // is only available for installed boards.
+  string fqbn = 2;
+}
+
+message Profile {
+  // Name used to identify the profile within the sketch.
+  string name = 1;
+  // FQBN specified in the profile.
   string fqbn = 2;
 }

@@ -57,7 +57,7 @@ message CompileRequest {
   // If jobs is set to 0, it will use the number of available CPUs as the
   // maximum.
   int32 jobs = 14;
-  // List of custom libraries paths separated by commas.
+  // A list of paths to directories containing a collection of libraries.
   repeated string libraries = 15;
   // Optimize compile output for debug, not for release.
   bool optimize_for_debug = 16;
@@ -78,12 +78,27 @@ message CompileRequest {
   // When set to `true` the compiled binary will be copied to the export
   // directory.
   google.protobuf.BoolValue export_binaries = 23;
+  // A list of paths to single libraries root directory.
+  repeated string library = 24;
+  // The path where to search for the custom signing key name and the encrypt
+  // key name
+  string keys_keychain = 25;
+  // The name of the custom key to use for signing during the compile process
+  string sign_key = 26;
+  // The name of the custom key to use for encrypting during the compile process
+  string encrypt_key = 27;
+  // If set to true the build will skip the library discovery process and will
+  // use the same libraries of latest build. Enabling this flag may produce a
+  // wrong output and should not be used in regular compiles unless there is a
+  // very specific reason to do so. This flag is mainly provided for usage in
+  // language servers to optimize the build speed in some particular cases.
+  bool skip_libraries_discovery = 28;
 }
 
 message CompileResponse {
-  // The output of the compilation process.
+  // The output of the compilation process (stream)
   bytes out_stream = 1;
-  // The error output of the compilation process.
+  // The error output of the compilation process (stream)
   bytes err_stream = 2;
   // The compiler build path
   string build_path = 3;
@@ -91,6 +106,12 @@ message CompileResponse {
   repeated Library used_libraries = 4;
   // The size of the executable split by sections
   repeated ExecutableSectionSize executable_sections_size = 5;
+  // The platform where the board is defined
+  InstalledPlatformReference board_platform = 6;
+  // The platform used for the build (if referenced from the board platform)
+  InstalledPlatformReference build_platform = 7;
+  // Completions reports of the compilation process (stream)
+  TaskProgress progress = 8;
 }
 
 message ExecutableSectionSize {
