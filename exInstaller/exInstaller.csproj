@@ -5,7 +5,7 @@
     <RuntimeIdentifiers>win-x86;win-x64;osx-x64;linux-x64;linux-arm;linux-arm64</RuntimeIdentifiers>
     <StartupObject>exInstaller.Program</StartupObject>
     <AssemblyName>exInstaller</AssemblyName>
-    <Version>2.4.0</Version>
+    <Version>2.5.0</Version>
     <Authors>Dex's Lab</Authors>
     <Company>DCC Extended</Company>
     <PackageProjectUrl>https://dcc-ex.github.io/</PackageProjectUrl>
