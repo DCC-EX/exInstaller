@@ -6,7 +6,7 @@ name: Documentation Update
 description: Submit a request for documentation updates, or to report broken links or inaccuracies
 title: "[Documentation Update]: "
 labels:
-  - Needs Documentation
+  - "Needs Documentation"
 body:
   - type: markdown
     attributes:
