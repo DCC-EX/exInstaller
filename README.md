@@ -1,5 +1,15 @@
 # exInstaller
 
+**NOTICE** As of the 11th November 2023, this repository is now a public archive.
+
+## Replaced by EX-Installer
+
+As announced on the 2nd of July 2023, the DCC-EX team have released a new, Python based, cross-platform installer: [EX-Installer](https://dcc-ex.com/news/posts/20230702.html)
+
+There is a new GitHub repository for [EX-Installer](https://github.com/DCC-EX/EX-Installer), and further information can also be found on our [website](https://dcc-ex.com).
+
+## exInstaller
+
 ![.NET Core](https://github.com/DCC-EX/exInstaller/workflows/.NET%20Core/badge.svg)
 
 This project provides a "one-click" installer for DCC++. At runtime, you can select either the "Classic" version or the new "DCC++ EX" version.
